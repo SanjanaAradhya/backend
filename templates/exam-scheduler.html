@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Exam Scheduler & Desk Allocator - VTU</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .ai-container {
+            background: rgba(255,255,255,0.98);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
+        .ai-header {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ai-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.1) 2px,
+                rgba(255,255,255,0.1) 4px
+            );
+            animation: move 20s linear infinite;
+        }
+        
+        @keyframes move {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        .ai-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 2px;
+            animation: pulse 2s infinite;
+        }
+        
+        .desk-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 2px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        
+        .subject-card {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        
+        .subject-card:hover {
+            border-color: #007bff;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+        }
+        
+        .subject-card.selected {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            transform: scale(1.02);
+        }
+        
+        .ai-algorithm-selector {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .algorithm-option {
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .algorithm-option:hover {
+            border-color: #007bff;
+            background: #f8f9ff;
+        }
+        
+        .algorithm-option.selected {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        }
+        
+        .room-setup {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .desk-info-card {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .progress-indicator {
+            background: #343a40;
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #28a745);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 2px;
+        }
+        
+        .allocation-result {
+            background: linear-gradient(135deg, #d1ecf1, #b8daff);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-left: 5px solid #007bff;
+        }
+        
+        .seat-map {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            min-height: 200px;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .btn-ai {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-ai:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,123,255,0.3);
+            background: linear-gradient(135deg, #0056b3, #004085);
+            color: white;
+        }
+        
+        .btn-ai:active {
+            transform: translateY(0);
+        }
+        
+        .allocation-stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            margin: 0.5rem;
+            flex: 1;
+            min-width: 200px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.3em;
+        }
+
+        .desk-preview {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 2px solid #dee2e6;
+        }
+        
+        .desk-icon {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 2px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-graduation-cap me-2"></i>VTU Exam Registration
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/chatbot">🎤 Chatbot</a>
+                <a class="nav-link" href="/dashboard">📊 Dashboard</a>
+                <a class="nav-link" href="/subjects">📚 Subjects</a>
+                <a class="nav-link" href="/admin">👥 Admin</a>
+                <a class="nav-link active" href="/exam_scheduler">🪑 AI Desk Allocator</a>
+                <a class="nav-link" href="/staff-registration">👥staff registration </a>
+                <a class="nav-link" href="/staff-management">👥 staff management</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="ai-container">
+            <div class="ai-header">
+                <h1><i class="fas fa-chair me-3"></i>AI Desk-Based Exam Allocator</h1>
+                <p class="mb-3">Advanced AI-powered exam scheduling with intelligent desk allocation (2 students per desk)</p>
+                <div>
+                    <span class="ai-badge"><i class="fas fa-dna me-1"></i>Genetic Algorithm</span>
+                    <span class="ai-badge"><i class="fas fa-project-diagram me-1"></i>Graph Coloring</span>
+                    <span class="ai-badge"><i class="fas fa-map-marked-alt me-1"></i>Constraint Mapping</span>
+                    <span class="desk-badge"><i class="fas fa-chair me-1"></i>2 Students Per Desk</span>
+                    <span class="desk-badge"><i class="fas fa-ban me-1"></i>No Same Subject+Branch</span>
+                    <span class="ai-badge"><i class="fas fa-balance-scale me-1"></i>Load Balancing</span>
+                </div>
+            </div>
+
+            <!-- Step 1: Subject Selection -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-list-check me-2"></i>Step 1: Select Subjects for Exam</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <select id="branchFilter" class="form-select">
+                                <option value="">All Branches</option>
+                                <option value="CSE">CSE</option>
+                                <option value="ISE">ISE</option>
+                                <option value="ECE">ECE</option>
+                                <option value="MECH">MECH</option>
+                                <option value="CIVIL">CIVIL</option>
+                                <option value="EEE">EEE</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="semesterFilter" class="form-select">
+                                <option value="">All Semesters</option>
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="subjectSearch" class="form-control" placeholder="Search subjects...">
+                        </div>
+                    </div>
+                    
+                    <div id="subjectsList" class="row">
+                        <!-- Subjects will be loaded here -->
+                    </div>
+                    
+                    <div class="mt-3">
+                        <span class="badge bg-info" id="selectedCount">0 subjects selected</span>
+                        <span class="badge bg-success" id="estimatedDesks">0 desks needed</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: AI Algorithm Selection -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-robot me-2"></i>Step 2: Select AI Algorithm for Desk Allocation</h4>
+                </div>
+                <div class="card-body">
+                    <div class="ai-algorithm-selector">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="algorithm-option" data-algorithm="genetic">
+                                    <h5><i class="fas fa-dna me-2"></i>Genetic Algorithm</h5>
+                                    <p class="mb-0">Evolutionary desk pairing optimization with anti-cheating measures</p>
+                                    <small class="text-muted">Best for: Large student groups, complex constraints</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="algorithm-option" data-algorithm="graph_coloring">
+                                    <h5><i class="fas fa-project-diagram me-2"></i>Graph Coloring</h5>
+                                    <p class="mb-0">Conflict-free desk assignment using graph theory</p>
+                                    <small class="text-muted">Best for: Subject conflict resolution</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="algorithm-option" data-algorithm="constraint_mapping">
+                                    <h5><i class="fas fa-map-marked-alt me-2"></i>Constraint Mapping</h5>
+                                    <p class="mb-0">Rule-based desk allocation with branch diversity</p>
+                                    <small class="text-muted">Best for: Strict policy enforcement</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="algorithm-option selected" data-algorithm="hybrid_ai">
+                                    <h5><i class="fas fa-brain me-2"></i>Hybrid AI (Recommended)</h5>
+                                    <p class="mb-0">Combines multiple AI techniques for optimal desk pairing</p>
+                                    <small class="text-muted">Best for: All scenarios, maximum optimization</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Room Setup -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="fas fa-building me-2"></i>Step 3: Room Configuration (Desk-Based)</h4>
+                </div>
+                <div class="card-body">
+                    <div class="room-setup">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5>Available Rooms <small class="text-muted">(Capacity shown as desks available)</small></h5>
+                                <div id="roomsList">
+                                    <!-- Rooms will be loaded here -->
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>Add New Room</h5>
+                                <form id="addRoomForm">
+                                    <div class="mb-2">
+                                        <input type="text" id="roomCode" class="form-control" placeholder="Room Code (e.g., R001)">
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="text" id="roomName" class="form-control" placeholder="Room Name">
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="number" id="roomCapacity" class="form-control" placeholder="Total Seats" min="2">
+                                        <small class="text-muted">Total seats (will be divided by 2 for desks)</small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="number" id="roomRows" class="form-control" placeholder="Rows" min="1" value="10">
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="number" id="roomCols" class="form-control" placeholder="Columns" min="2" value="6">
+                                        <small class="text-muted">Even numbers work best for desk pairing</small>
+                                    </div>
+                                    <button type="submit" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-plus"></i> Add Room
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Date & Time Setting -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="fas fa-calendar-alt me-2"></i>Step 4: Exam Date & Time</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" id="examStartDate" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">End Date</label>
+                            <input type="date" id="examEndDate" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Session Duration</label>
+                            <select id="sessionDuration" class="form-select">
+                                <option value="3">3 Hours</option>
+                                <option value="2">2 Hours</option>
+                                <option value="4">4 Hours</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Sessions Per Day</label>
+                            <select id="sessionsPerDay" class="form-select">
+                                <option value="2">2 Sessions (Morning & Afternoon)</option>
+                                <option value="1">1 Session (Morning Only)</option>
+                                <option value="3">3 Sessions (Full Day)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6>Time Slots</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Morning Session</label>
+                                <input type="time" id="morningTime" class="form-control" value="10:00">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Afternoon Session</label>
+                                <input type="time" id="afternoonTime" class="form-control" value="14:00">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Evening Session (if applicable)</label>
+                                <input type="time" id="eveningTime" class="form-control" value="18:00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Processing Controls -->
+            <div class="text-center mb-4">
+                <button id="startAIAllocation" class="btn btn-ai btn-lg">
+                    <i class="fas fa-chair me-2"></i>Start AI Desk Allocation
+                </button>
+                <button id="resetSystem" class="btn btn-secondary btn-lg ms-2">
+                    <i class="fas fa-undo me-2"></i>Reset
+                </button>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="progress-indicator">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">AI is processing desk allocations...</p>
+                <small id="processingStatus">Initializing...</small>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" style="display: none;">
+                <div class="allocation-result">
+                    <h3><i class="fas fa-check-circle text-success me-2"></i>AI Desk Allocation Complete!</h3>
+                    <div class="allocation-stats">
+                        <div class="stat-card">
+                            <h4 id="totalStudents">0</h4>
+                            <p>Students Allocated</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4 id="totalDesks">0</h4>
+                            <p>Desks Used</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4 id="totalRooms">0</h4>
+                            <p>Rooms Utilized</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4 id="totalExams">0</h4>
+                            <p>Exams Scheduled</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4 id="efficiencyScore">0%</h4>
+                            <p>AI Efficiency</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Results -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chair me-2"></i>Desk Allocation & Exam Schedule</h5>
+                        <div class="float-end">
+                            <button class="btn btn-primary btn-sm" onclick="exportResults()">
+                                <i class="fas fa-download me-1"></i>Export
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="printResults()">
+                                <i class="fas fa-print me-1"></i>Print
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="detailedResults">
+                            <!-- Detailed results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+    <script>
+    // Global variables
+    let selectedSubjects = [];
+    let selectedAlgorithm = 'hybrid_ai';
+    let availableRooms = [];
+    let totalStudentsCount = 0;
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', function() {
+        initializePage();
+        loadSubjects();
+        loadRooms();
+        setupEventListeners();
+        setDefaultDates();
+    });
+
+    function initializePage() {
+        console.log('🪑 AI Desk Allocator initialized');
+    }
+
+    function loadSubjects() {
+        fetch('/api/subjects-with-students')
+            .then(response => response.json())
+            .then(data => {
+                displaySubjects(data.subjects || []);
+            })
+            .catch(error => {
+                console.error('Error loading subjects:', error);
+                showAlert('danger', 'Failed to load subjects');
+            });
+    }
+
+    function displaySubjects(subjects) {
+        const container = document.getElementById('subjectsList');
+        container.innerHTML = '';
+
+        subjects.forEach(subject => {
+            const subjectCard = document.createElement('div');
+            subjectCard.className = 'col-md-6 col-lg-4';
+            subjectCard.innerHTML = `
+                <div class="subject-card" data-subject-code="${subject.subject_code}" data-student-count="${subject.student_count}">
+                    <div class="card-body">
+                        <h6 class="card-title">${subject.subject_code}</h6>
+                        <p class="card-text">${subject.subject_name}</p>
+                        <div class="d-flex justify-content-between">
+                            <span class="badge bg-primary">${subject.branch}</span>
+                            <span class="badge bg-info">Sem ${subject.semester}</span>
+                            <span class="badge bg-success">${subject.student_count} students</span>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-chair me-1"></i>~${Math.ceil(subject.student_count / 2)} desks needed
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(subjectCard);
+        });
+
+        document.querySelectorAll('.subject-card').forEach(card => {
+            card.addEventListener('click', function() {
+                toggleSubjectSelection(this);
+            });
+        });
+    }
+
+    function toggleSubjectSelection(card) {
+        const subjectCode = card.dataset.subjectCode;
+        const studentCount = parseInt(card.dataset.studentCount) || 0;
+        
+        if (card.classList.contains('selected')) {
+            card.classList.remove('selected');
+            selectedSubjects = selectedSubjects.filter(s => s !== subjectCode);
+            totalStudentsCount -= studentCount;
+        } else {
+            card.classList.add('selected');
+            selectedSubjects.push(subjectCode);
+            totalStudentsCount += studentCount;
+        }
+        
+        updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+        const count = selectedSubjects.length;
+        const estimatedDesks = Math.ceil(totalStudentsCount / 2);
+        
+        document.getElementById('selectedCount').textContent = `${count} subject${count !== 1 ? 's' : ''} selected`;
+        document.getElementById('estimatedDesks').textContent = `${estimatedDesks} desks needed (${totalStudentsCount} students)`;
+    }
+
+    function loadRooms() {
+        fetch('/api/exam-rooms')
+            .then(response => response.json())
+            .then(data => {
+                availableRooms = data.rooms || [];
+                displayRooms();
+            })
+            .catch(error => {
+                console.error('Error loading rooms:', error);
+                showAlert('danger', 'Failed to load rooms');
+            });
+    }
+
+    function displayRooms() {
+        const container = document.getElementById('roomsList');
+        container.innerHTML = '';
+
+        availableRooms.forEach(room => {
+            const desksAvailable = Math.floor(room.capacity / 2);
+            const roomDiv = document.createElement('div');
+            roomDiv.className = 'card mb-2';
+            roomDiv.innerHTML = `
+                <div class="card-body py-2">
+                    <div class="row align-items-center">
+                        <div class="col-md-3"><strong>${room.room_code}</strong></div>
+                        <div class="col-md-3">${room.room_name}</div>
+                        <div class="col-md-2">
+                            <span class="badge bg-info">${room.capacity} seats</span>
+                        </div>
+                        <div class="col-md-2">
+                            <span class="badge bg-success"><i class="fas fa-chair me-1"></i>${desksAvailable} desks</span>
+                        </div>
+                        <div class="col-md-1">
+                            <span class="badge bg-secondary">${room.rows}×${room.cols}</span>
+                        </div>
+                        <div class="col-md-1">
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteRoom('${room.room_code}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(roomDiv);
+        });
+    }
+
+    function setupEventListeners() {
+        // Algorithm selection
+        document.querySelectorAll('.algorithm-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.algorithm-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedAlgorithm = this.dataset.algorithm;
+            });
+        });
+
+        // Add room form
+        document.getElementById('addRoomForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            addNewRoom();
+        });
+
+        // Start AI allocation
+        document.getElementById('startAIAllocation').addEventListener('click', function() {
+            startAIProcessing();
+        });
+
+        // Reset system
+        document.getElementById('resetSystem').addEventListener('click', function() {
+            resetSystem();
+        });
+
+        // Filters
+        document.getElementById('branchFilter').addEventListener('change', filterSubjects);
+        document.getElementById('semesterFilter').addEventListener('change', filterSubjects);
+        document.getElementById('subjectSearch').addEventListener('input', filterSubjects);
+    }
+
+    function startAIProcessing() {
+        if (selectedSubjects.length === 0) {
+            showAlert('warning', 'Please select at least one subject');
+            return;
+        }
+
+        if (availableRooms.length === 0) {
+            showAlert('warning', 'Please add at least one exam room');
+            return;
+        }
+
+        // Check desk capacity
+        const totalDesksAvailable = availableRooms.reduce((sum, room) => sum + Math.floor(room.capacity / 2), 0);
+        const desksNeeded = Math.ceil(totalStudentsCount / 2);
+        
+        if (desksNeeded > totalDesksAvailable) {
+            showAlert('danger', `Insufficient desk capacity! Need ${desksNeeded} desks, but only ${totalDesksAvailable} available.`);
+            return;
+        }
+
+        const examData = {
+            subjects: selectedSubjects,
+            algorithm: selectedAlgorithm,
+            start_date: document.getElementById('examStartDate').value,
+            end_date: document.getElementById('examEndDate').value,
+            session_duration: document.getElementById('sessionDuration').value,
+            sessions_per_day: document.getElementById('sessionsPerDay').value,
+            morning_time: document.getElementById('morningTime').value,
+            afternoon_time: document.getElementById('afternoonTime').value,
+            evening_time: document.getElementById('eveningTime').value,
+            examDate: document.getElementById('examStartDate').value,
+            examTime: document.getElementById('morningTime').value
+        };
+
+        if (!examData.start_date || !examData.end_date) {
+            showAlert('warning', 'Please select exam start and end dates');
+            return;
+        }
+
+        showLoadingState();
+        
+        fetch('/api/ai-process-exams', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(examData)
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('AI Processing result:', data);
+            hideLoadingState();
+            if (data.success) {
+                showResults(data);
+            } else {
+                showAlert('danger', data.message || 'AI processing failed');
+            }
+        })
+        .catch(error => {
+            console.error('AI processing error:', error);
+            hideLoadingState();
+            showAlert('danger', 'AI processing error: ' + error.message);
+        });
+    }
+
+    function showResults(data) {
+        document.getElementById('resultsSection').style.display = 'block';
+        
+        // Update statistics
+        document.getElementById('totalStudents').textContent = data.total_students || 0;
+        document.getElementById('totalDesks').textContent = data.desks_used || Math.ceil((data.total_students || 0) / 2);
+        document.getElementById('totalRooms').textContent = data.rooms_used || 0;
+        document.getElementById('totalExams').textContent = data.exams_scheduled || 0;
+        document.getElementById('efficiencyScore').textContent = (data.efficiency || 0) + '%';
+        
+        // Store session ID for detailed view
+        if (data.session_id) {
+            window.lastSessionId = data.session_id;
+        }
+        
+        // Show algorithm-specific results
+        const container = document.getElementById('detailedResults');
+        container.innerHTML = `
+            <div class="alert alert-success">
+                <h4>🪑 ${data.algorithm_used || 'AI'} Desk Allocation Results</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Algorithm Used:</strong> ${data.algorithm_used || 'AI'}</p>
+                        <p><strong>Students Allocated:</strong> ${data.allocated_students || data.total_students}</p>
+                        <p><strong>Desks Used:</strong> ${data.desks_used || Math.ceil((data.total_students || 0) / 2)}</p>
+                        <p><strong>Rooms Used:</strong> ${data.rooms_used}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Total Students:</strong> ${data.total_students}</p>
+                        <p><strong>Fitness Score:</strong> ${data.fitness_score || 'N/A'}</p>
+                        <p><strong>Session ID:</strong> ${data.session_id || 'N/A'}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <h5>🪑 Desk-Based Allocation Preview</h5>
+                <p>Desk allocations have been optimized using ${data.algorithm_used} with:</p>
+                <ul>
+                    <li>✅ 2 students per desk arrangement</li>
+                    <li>✅ No same subject + branch at same desk</li>
+                    <li>✅ Branch diversity maximization</li>
+                    <li>✅ Subject separation optimization</li>
+                    <li>✅ Room utilization balancing</li>
+                    <li>✅ Anti-cheating desk pairing</li>
+                </ul>
+                ${data.session_id ? `
+                <button class="btn btn-primary" onclick="viewDetailedAllocations()">
+                    <i class="fas fa-chair"></i> View Detailed Desk Allocations
+                </button>
+                ` : ''}
+            </div>
+        `;
+        
+        // Display schedule if available
+        if (data.schedule && data.schedule.length > 0) {
+            displayDetailedResults(data.schedule);
+        }
+        
+        // Scroll to results
+        document.getElementById('resultsSection').scrollIntoView({behavior: 'smooth'});
+    }
+
+    function viewDetailedAllocations() {
+        if (window.lastSessionId) {
+            window.open(`/allocation-results/${window.lastSessionId}`, '_blank');
+        } else {
+            showAlert('warning', 'No allocation session available');
+        }
+    }
+
+    function addNewRoom() {
+        const roomData = {
+            room_code: document.getElementById('roomCode').value.trim(),
+            room_name: document.getElementById('roomName').value.trim(),
+            capacity: parseInt(document.getElementById('roomCapacity').value),
+            rows: parseInt(document.getElementById('roomRows').value),
+            cols: parseInt(document.getElementById('roomCols').value)
+        };
+
+        if (!roomData.room_code || !roomData.room_name || !roomData.capacity) {
+            showAlert('warning', 'Please fill all room details');
+            return;
+        }
+
+        if (roomData.capacity < 2) {
+            showAlert('warning', 'Room must have at least 2 seats for desk pairing');
+            return;
+        }
+
+        fetch('/api/add-exam-room', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(roomData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', 'Room added successfully');
+                document.getElementById('addRoomForm').reset();
+                loadRooms();
+            } else {
+                showAlert('danger', data.message || 'Failed to add room');
+            }
+        });
+    }
+
+    function deleteRoom(roomCode) {
+        if (confirm(`Delete room ${roomCode}?`)) {
+            fetch('/api/delete-exam-room', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({room_code: roomCode})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', 'Room deleted successfully');
+                    loadRooms();
+                } else {
+                    showAlert('danger', data.message || 'Failed to delete room');
+                }
+            });
+        }
+    }
+
+    function showLoadingState() {
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('progressBar').style.width = '0%';
+        
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 10;
+            if (progress > 90) progress = 90;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            if (progress < 15) {
+                document.getElementById('processingStatus').textContent = 'Analyzing subjects and students...';
+            } else if (progress < 30) {
+                document.getElementById('processingStatus').textContent = 'Creating desk positions...';
+            } else if (progress < 50) {
+                document.getElementById('processingStatus').textContent = 'Running AI desk pairing algorithms...';
+            } else if (progress < 70) {
+                document.getElementById('processingStatus').textContent = 'Optimizing desk arrangements...';
+            } else if (progress < 85) {
+                document.getElementById('processingStatus').textContent = 'Validating anti-cheating constraints...';
+            } else {
+                document.getElementById('processingStatus').textContent = 'Finalizing desk allocations...';
+            }
+        }, 200);
+        
+        window.progressInterval = progressInterval;
+    }
+
+    function hideLoadingState() {
+        document.getElementById('loadingSpinner').style.display = 'none';
+        document.getElementById('progressBar').style.width = '100%';
+        
+        if (window.progressInterval) {
+            clearInterval(window.progressInterval);
+        }
+        
+        setTimeout(() => {
+            document.getElementById('progressBar').style.width = '0%';
+        }, 1000);
+    }
+
+    function displayDetailedResults(schedule) {
+        if (schedule.length === 0) return;
+        
+        let html = '<div class="table-responsive mt-3"><table class="table table-striped table-hover">';
+        html += '<thead class="table-dark"><tr>';
+        html += '<th>Subject Code</th><th>Subject Name</th><th>Date</th><th>Time</th><th>Students</th><th>Desks</th>';
+        html += '</tr></thead><tbody>';
+        
+        schedule.forEach(item => {
+            const desksNeeded = Math.ceil((item.student_count || 0) / 2);
+            html += `
+                <tr>
+                    <td><strong>${item.subject_code}</strong></td>
+                    <td>${item.subject_name || 'N/A'}</td>
+                    <td>${item.exam_date || 'TBD'}</td>
+                    <td>${item.exam_time || 'TBD'}</td>
+                    <td><span class="badge bg-info">${item.student_count || 0}</span></td>
+                    <td><span class="badge bg-success"><i class="fas fa-chair me-1"></i>${desksNeeded}</span></td>
+                </tr>
+            `;
+        });
+        
+        html += '</tbody></table></div>';
+        document.getElementById('detailedResults').innerHTML += html;
+    }
+
+    function filterSubjects() {
+        const branch = document.getElementById('branchFilter').value;
+        const semester = document.getElementById('semesterFilter').value;
+        const search = document.getElementById('subjectSearch').value.toLowerCase();
+        
+        document.querySelectorAll('.subject-card').forEach(card => {
+            const cardData = card.innerHTML.toLowerCase();
+            const visible = (!branch || cardData.includes(branch.toLowerCase())) &&
+                           (!semester || cardData.includes(`sem ${semester}`)) &&
+                           (!search || cardData.includes(search));
+            
+            card.parentElement.style.display = visible ? 'block' : 'none';
+        });
+    }
+
+    function setDefaultDates() {
+        const today = new Date();
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7);
+        const twoWeeksLater = new Date(today);
+        twoWeeksLater.setDate(today.getDate() + 21);
+        
+        document.getElementById('examStartDate').value = nextWeek.toISOString().split('T')[0];
+        document.getElementById('examEndDate').value = twoWeeksLater.toISOString().split('T')[0];
+    }
+
+    function resetSystem() {
+        if (confirm('Reset all selections and start over?')) {
+            selectedSubjects = [];
+            totalStudentsCount = 0;
+            document.querySelectorAll('.subject-card').forEach(card => card.classList.remove('selected'));
+            document.querySelectorAll('.algorithm-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelector('[data-algorithm="hybrid_ai"]').classList.add('selected');
+            selectedAlgorithm = 'hybrid_ai';
+            document.getElementById('resultsSection').style.display = 'none';
+            updateSelectedCount();
+            showAlert('info', 'System reset successfully');
+        }
+    }
+
+    function exportResults() {
+        showAlert('success', 'Exporting desk allocation results...');
+    }
+
+    function printResults() {
+        window.print();
+    }
+
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+</script>
+
+</body>
+</html>

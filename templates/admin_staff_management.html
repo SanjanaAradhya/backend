@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Management - VTU Admin</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            padding-bottom: 50px;
+        }
+        
+        .admin-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .stats-card h3 {
+            font-size: 40px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .staff-table {
+            margin-top: 20px;
+        }
+        
+        .table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .table thead {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-action {
+            padding: 6px 12px;
+            margin: 2px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .badge-active {
+            background: #28a745;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        
+        .badge-inactive {
+            background: #dc3545;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .room-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .room-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .room-card.allocated {
+            background: #e7f3ff;
+            border-color: #0066cc;
+        }
+        
+        .allocation-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .section-title {
+            color: #667eea;
+            font-weight: bold;
+            margin: 30px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="admin-container">
+            <!-- Header -->
+            <div class="header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1><i class="fas fa-users-cog"></i> Staff Management Dashboard</h1>
+                        <p class="mb-0">Manage staff members and allocate to examination rooms</p>
+                    </div>
+                    <div>
+                        <a href="/staff-registration" class="btn btn-light btn-lg">
+                            <i class="fas fa-user-plus"></i> Add New Staff
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Statistics Cards -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <i class="fas fa-users fa-2x"></i>
+                        <h3 id="totalStaff">0</h3>
+                        <p>Total Staff</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <i class="fas fa-user-check fa-2x"></i>
+                        <h3 id="activeStaff">0</h3>
+                        <p>Active Staff</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                        <i class="fas fa-door-open fa-2x"></i>
+                        <h3 id="allocatedRooms">0</h3>
+                        <p>Rooms Allocated</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                        <i class="fas fa-calendar-check fa-2x"></i>
+                        <h3 id="totalAllocations">0</h3>
+                        <p>Staff Allocations</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs nav-fill mt-4" id="managementTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="staff-list-tab" data-bs-toggle="tab" 
+                            data-bs-target="#staff-list" type="button">
+                        <i class="fas fa-list"></i> All Staff Members
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="room-allocation-tab" data-bs-toggle="tab" 
+                            data-bs-target="#room-allocation" type="button">
+                        <i class="fas fa-door-closed"></i> Room Allocation
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="allocations-view-tab" data-bs-toggle="tab" 
+                            data-bs-target="#allocations-view" type="button">
+                        <i class="fas fa-eye"></i> View Allocations
+                    </button>
+                </li>
+            </ul>
+            
+            <!-- Tab Content -->
+            <div class="tab-content mt-4" id="managementTabsContent">
+                <!-- Staff List Tab -->
+                <div class="tab-pane fade show active" id="staff-list" role="tabpanel">
+                    <h3 class="section-title">
+                        <i class="fas fa-users"></i> Registered Staff Members
+                    </h3>
+                    
+                    <!-- Filter Section -->
+                    <div class="filter-section">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" id="searchStaff" 
+                                       placeholder="🔍 Search by name or ID...">
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-control" id="filterDepartment">
+                                    <option value="">All Departments</option>
+                                    <option value="Computer Science & Engineering">CSE</option>
+                                    <option value="Information Science & Engineering">ISE</option>
+                                    <option value="Electronics & Communication Engineering">ECE</option>
+                                    <option value="Mechanical Engineering">Mechanical</option>
+                                    <option value="Civil Engineering">Civil</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-control" id="filterStatus">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active Only</option>
+                                    <option value="inactive">Inactive Only</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-primary w-100" onclick="loadStaff()">
+                                    <i class="fas fa-sync"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive staff-table">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Staff ID</th>
+                                    <th>Name</th>
+                                    <th>Department</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center">
+                                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                                        <p>Loading staff members...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Room Allocation Tab - ENHANCED VERSION -->
+<div class="tab-pane fade" id="room-allocation" role="tabpanel">
+    <h3 class="section-title">
+        <i class="fas fa-door-closed"></i> Allocate Staff to Examination Rooms
+    </h3>
+    
+    <!-- Quick Actions -->
+    <div class="alert alert-info">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                <p class="mb-0">Automatically allocate staff to the most recent session</p>
+            </div>
+            <button class="btn btn-success btn-lg" onclick="quickAutoAllocate()">
+                <i class="fas fa-magic"></i> Auto Allocate Latest Session
+            </button>
+        </div>
+    </div>
+
+    <!-- Add this after the "Auto Allocate" button -->
+<div class="mt-4">
+    <h5><i class="fas fa-envelope"></i> Send Allocation Emails</h5>
+    <p class="text-muted">Send room allocation details to all assigned staff members</p>
+    <button class="btn btn-info btn-lg" onclick="sendStaffEmails()">
+        <i class="fas fa-paper-plane me-2"></i>Send Emails to All Staff
+    </button>
+    <div id="email-progress" class="mt-3" style="display: none;">
+        <div class="alert alert-info">
+            <div class="d-flex align-items-center">
+                <div class="spinner-border text-primary me-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div>
+                    <strong>Sending emails...</strong>
+                    <p class="mb-0" id="email-status">Please wait...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+    <!-- Session Selection -->
+    <div class="filter-section">
+        <div class="row align-items-end">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Or Select Specific Session:</label>
+                <select class="form-control form-control-lg" id="allocationSessionSelect">
+                    <option value="">-- Select Session --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary btn-lg w-100" onclick="loadRoomsForAllocation()">
+                    <i class="fas fa-search"></i> Load Rooms
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-success btn-lg w-100" onclick="autoAllocateStaff()">
+                    <i class="fas fa-magic"></i> Auto Allocate
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="roomsAllocationContainer">
+        <div class="empty-state">
+            <i class="fas fa-info-circle"></i>
+            <h4>Quick Start</h4>
+            <p>Click "Auto Allocate Latest Session" above for instant allocation</p>
+        </div>
+    </div>
+</div>
+
+                
+                <!-- View Allocations Tab -->
+                <div class="tab-pane fade" id="allocations-view" role="tabpanel">
+                    <h3 class="section-title">
+                        <i class="fas fa-eye"></i> Current Staff-Room Allocations
+                    </h3>
+                    
+                    <!-- Session Selection for Viewing -->
+                    <div class="filter-section">
+                        <div class="row align-items-end">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Select Session to View:</label>
+                                <select class="form-control form-control-lg" id="viewSessionSelect">
+                                    <option value="">-- Select Session --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-primary btn-lg w-100" onclick="loadAllocationsView()">
+                                    <i class="fas fa-eye"></i> View Allocations
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="allocationsViewContainer">
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h4>No allocations to display</h4>
+                            <p>Select a session to view staff-room allocations</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Allocate Staff Modal -->
+    <div class="modal fade" id="allocateStaffModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-tie"></i> Allocate Staff to Room
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Room:</label>
+                        <input type="text" class="form-control" id="modalRoomName" readonly>
+                        <input type="hidden" id="modalRoomCode">
+                        <input type="hidden" id="modalSessionId">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Staff Member:</label>
+                        <select class="form-control" id="modalStaffSelect">
+                            <option value="">-- Select Staff --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Role:</label>
+                        <select class="form-control" id="modalRoleSelect">
+                            <option value="Invigilator">Invigilator</option>
+                            <option value="Chief Invigilator">Chief Invigilator</option>
+                            <option value="Assistant">Assistant</option>
+                        </select>
+                    </div>
+                    
+                    <div id="currentAllocations" class="mt-4">
+                        <h6 class="fw-bold">Currently Allocated Staff:</h6>
+                        <div id="currentStaffList"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="allocateStaffToRoom()">
+                        <i class="fas fa-check"></i> Allocate Staff
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allStaff = [];
+        let allSessions = [];
+        let currentSessionId = null;
+        
+        // Load everything on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStaff();
+            loadAllocationSessions();
+        });
+        
+        // Load all staff members
+        async function sendStaffEmails() {
+    try {
+        // Get the latest session
+        const response = await fetch('/api/allocation-sessions/all');
+        const data = await response.json();
+        
+        if (!data.success || data.sessions.length === 0) {
+            alert('❌ No allocation session found. Please allocate students first.');
+            return;
+        }
+        
+        const latestSession = data.sessions[0];
+        const sessionId = latestSession.session_id;
+        
+        if (!confirm(`Send allocation emails to all staff for session ${sessionId}?\n\nThis will send emails to all allocated staff members with their room details.`)) {
+            return;
+        }
+        
+        // Show progress
+        document.getElementById('email-progress').style.display = 'block';
+        document.getElementById('email-status').textContent = 'Sending emails to staff members...';
+        
+        // Send emails
+        const emailResponse = await fetch(`/api/send-staff-emails/${sessionId}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        
+        const emailData = await emailResponse.json();
+        
+        // Hide progress
+        document.getElementById('email-progress').style.display = 'none';
+        
+        if (emailData.success) {
+            alert(`✅ Email Summary:\n\n` +
+                  `✓ ${emailData.success_count} emails sent successfully\n` +
+                  `✗ ${emailData.failed_count} failed\n\n` +
+                  `Total Staff: ${emailData.total_staff}`);
+            
+            if (emailData.failed_count > 0) {
+                console.log('Failed emails:', emailData.failed_staff);
+            }
+        } else {
+            alert('❌ Error: ' + emailData.message);
+        }
+        
+    } catch (error) {
+        document.getElementById('email-progress').style.display = 'none';
+        alert('❌ Error sending emails: ' + error.message);
+        console.error('Email error:', error);
+    }
+}
+
+        async function loadStaff() {
+            try {
+                const response = await fetch('/api/staff/all');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allStaff = data.staff;
+                    displayStaff(allStaff);
+                    updateStatistics();
+                }
+            } catch (error) {
+                console.error('Error loading staff:', error);
+                showAlert('Failed to load staff members', 'danger');
+            }
+        }
+        
+        // Display staff in table
+        function displayStaff(staff) {
+            const tbody = document.getElementById('staffTableBody');
+            
+            if (staff.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            <div class="empty-state">
+                                <i class="fas fa-user-slash"></i>
+                                <h5>No staff members found</h5>
+                                <p>Click "Add New Staff" to register staff members</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = staff.map((s, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${s.staff_id}</strong></td>
+                    <td>${s.staff_name}</td>
+                    <td><small>${s.department}</small></td>
+                    <td><small>${s.email || '-'}</small></td>
+                    <td><small>${s.phone || '-'}</small></td>
+                    <td>
+                        <span class="badge ${s.is_active ? 'badge-active' : 'badge-inactive'}">
+                            ${s.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-warning btn-action" 
+                                onclick="editStaff('${s.staff_id}')" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-action" 
+                                onclick="deleteStaff('${s.staff_id}')" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // Update statistics
+        function updateStatistics() {
+            document.getElementById('totalStaff').textContent = allStaff.length;
+            document.getElementById('activeStaff').textContent = 
+                allStaff.filter(s => s.is_active).length;
+        }
+        
+        // Filter staff
+        document.getElementById('searchStaff')?.addEventListener('input', filterStaff);
+        document.getElementById('filterDepartment')?.addEventListener('change', filterStaff);
+        document.getElementById('filterStatus')?.addEventListener('change', filterStaff);
+        
+        function filterStaff() {
+            const search = document.getElementById('searchStaff').value.toLowerCase();
+            const dept = document.getElementById('filterDepartment').value;
+            const status = document.getElementById('filterStatus').value;
+            
+            let filtered = allStaff.filter(s => {
+                const matchSearch = s.staff_name.toLowerCase().includes(search) || 
+                                   s.staff_id.toLowerCase().includes(search);
+                const matchDept = !dept || s.department === dept;
+                const matchStatus = !status || 
+                                   (status === 'active' && s.is_active) || 
+                                   (status === 'inactive' && !s.is_active);
+                
+                return matchSearch && matchDept && matchStatus;
+            });
+            
+            displayStaff(filtered);
+        }
+
+        // ==========================================
+/**
+ * Quick auto-allocate for the most recent session - CORRECTED
+ */
+async function quickAutoAllocate() {
+    try {
+        console.log('🚀 Starting quick auto-allocate...');
+        
+        // Show loading
+        const container = document.getElementById('roomsAllocationContainer');
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                <h4 class="mt-3">Loading sessions...</h4>
+                <p>Please wait...</p>
+            </div>
+        `;
+        
+        // Fetch fresh session list
+        const sessionsResponse = await fetch('/api/allocation-sessions/all');
+        const sessionsData = await sessionsResponse.json();
+        
+        console.log('Sessions response:', sessionsData);
+        
+        if (!sessionsData.success || sessionsData.sessions.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    <h4><i class="fas fa-exclamation-circle"></i> No Sessions Found</h4>
+                    <p>No student allocation sessions exist yet.</p>
+                    <p>Please allocate students to rooms first, then come back here.</p>
+                </div>
+            `;
+            alert('❌ No allocation sessions found. Please create student allocations first.');
+            return;
+        }
+        
+        // Get latest session (first in array as ordered by created_at DESC)
+        const latestSession = sessionsData.sessions[0];
+        const sessionId = latestSession.session_id;
+        
+        console.log('📋 Latest session:', sessionId);
+        
+        // Show progress
+        container.innerHTML = `
+            <div class="alert alert-info">
+                <h5><i class="fas fa-info-circle"></i> Allocation in Progress</h5>
+                <p><strong>Session:</strong> ${sessionId}</p>
+                <p><strong>Subjects:</strong> ${latestSession.subject_codes}</p>
+                <div class="progress mt-3">
+                    <div id="allocationProgress" class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%">0%</div>
+                </div>
+                <p class="mt-2 mb-0"><small id="progressText">Fetching room data...</small></p>
+            </div>
+        `;
+        
+        // Get rooms
+        console.log('📍 Fetching rooms for session:', sessionId);
+        const roomsResponse = await fetch(`/api/rooms/allocated/${sessionId}`);
+        const roomsData = await roomsResponse.json();
+        
+        console.log('Rooms response:', roomsData);
+        
+        if (!roomsData.success || roomsData.rooms.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-warning">
+                    <h4><i class="fas fa-door-closed"></i> No Rooms Found</h4>
+                    <p>This session has no room allocations yet.</p>
+                </div>
+            `;
+            alert('⚠️ No rooms found for this session');
+            return;
+        }
+        
+        console.log(`📊 Found ${roomsData.rooms.length} rooms`);
+        
+        // Get available staff
+        const availableStaff = allStaff.filter(s => s.is_active);
+        
+        if (availableStaff.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    <h4><i class="fas fa-user-slash"></i> No Staff Available</h4>
+                    <p>No active staff members found. Please register staff first.</p>
+                </div>
+            `;
+            alert('❌ No active staff members. Please register staff first.');
+            return;
+        }
+        
+        console.log(`👥 Found ${availableStaff.length} active staff members`);
+        
+        // Allocate staff
+        let staffIndex = 0;
+        let allocated = 0;
+        let skipped = 0;
+        const totalRooms = roomsData.rooms.length;
+        
+        for (let roomIdx = 0; roomIdx < totalRooms; roomIdx++) {
+            const room = roomsData.rooms[roomIdx];
+            
+            // Update progress
+            const progress = Math.round(((roomIdx + 1) / totalRooms) * 100);
+            document.getElementById('allocationProgress').style.width = progress + '%';
+            document.getElementById('allocationProgress').textContent = progress + '%';
+            document.getElementById('progressText').textContent = 
+                `Allocating staff to ${room.room_name}... (${roomIdx + 1}/${totalRooms})`;
+            
+            // Get existing allocations
+            const existingResponse = await fetch(`/api/staff-allocations/session/${sessionId}`);
+            const existingData = await existingResponse.json();
+            
+            let roomAllocations = [];
+            if (existingData.success) {
+                roomAllocations = existingData.allocations.filter(a => a.room_code === room.room_code);
+            }
+            
+            // Check how many staff needed
+            const needed = 2 - roomAllocations.length;
+            
+            if (needed === 0) {
+                skipped++;
+                console.log(`⏭️ Room ${room.room_code} already has 2 staff`);
+                continue;
+            }
+            
+            // Allocate staff
+            for (let i = 0; i < needed && staffIndex < availableStaff.length; i++) {
+                const staff = availableStaff[staffIndex];
+                const role = (roomAllocations.length === 0 && i === 0) ? 
+                    'Chief Invigilator' : 'Invigilator';
+                
+                try {
+                    const allocResponse = await fetch('/api/staff-allocations/allocate', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            staff_id: staff.staff_id,
+                            room_code: room.room_code,
+                            room_name: room.room_name,
+                            role: role
+                        })
+                    });
+                    
+                    const allocData = await allocResponse.json();
+                    
+                    if (allocData.success) {
+                        allocated++;
+                        console.log(`✅ ${staff.staff_name} → ${room.room_code} (${role})`);
+                    } else {
+                        console.warn(`⚠️ Failed: ${allocData.message}`);
+                    }
+                } catch (error) {
+                    console.error('Allocation error:', error);
+                }
+                
+                staffIndex++;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        // Success summary
+        container.innerHTML = `
+            <div class="alert alert-success">
+                <h4><i class="fas fa-check-circle"></i> Auto-Allocation Complete! ✅</h4>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h2 class="text-primary">${allocated}</h2>
+                        <p>Staff Allocated</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h2 class="text-success">${totalRooms}</h2>
+                        <p>Rooms Allocated</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h2 class="text-info">${skipped}</h2>
+                        <p>Already Allocated</p>
+                    </div>
+                </div>
+                <hr>
+                <p class="mb-0">
+                    <strong>Session ID:</strong> ${sessionId}<br>
+                    <strong>Total Staff Used:</strong> ${Math.min(staffIndex, availableStaff.length)} / ${availableStaff.length}<br>
+                    <strong>Status:</strong> <span class="badge bg-success">SUCCESS</span>
+                </p>
+            </div>
+            <div class="text-center mt-3">
+                <button class="btn btn-primary btn-lg" onclick="loadAllocationsView()">
+                    <i class="fas fa-eye"></i> View All Allocations
+                </button>
+            </div>
+        `;
+        
+        console.log('🎉 Allocation complete!');
+        
+        // Refresh stats
+        await loadAllocationSessions();
+        
+    } catch (error) {
+        console.error('❌ Quick auto-allocate error:', error);
+        document.getElementById('roomsAllocationContainer').innerHTML = `
+            <div class="alert alert-danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> Error Occurred</h4>
+                <p>${error.message}</p>
+            </div>
+        `;
+        alert('❌ Auto-allocation failed: ' + error.message);
+    }
+}
+
+
+/**
+ * Helper function to view allocations for a specific session
+ */
+async function viewAllocationsForSession(sessionId) {
+    // Switch to allocations view tab
+    const allocationsTab = document.getElementById('allocations-view-tab');
+    allocationsTab.click();
+    
+    // Set the session and load
+    document.getElementById('viewSessionSelect').value = sessionId;
+    await loadAllocationsView();
+}
+
+/**
+ * Enhanced auto-allocate with better error handling
+ */
+async function autoAllocateStaff() {
+    const sessionId = document.getElementById('allocationSessionSelect').value;
+    
+    if (!sessionId) {
+        // If no session selected, use quick auto-allocate
+        if (confirm('No session selected. Auto-allocate to the latest session?')) {
+            await quickAutoAllocate();
+        }
+        return;
+    }
+    
+    if (!confirm('Auto-allocate staff to all rooms in this session?\n\nThis will assign 2 staff per room (1 Chief Invigilator + 1 Invigilator)')) {
+        return;
+    }
+    
+    try {
+        // Get rooms
+        const roomsResponse = await fetch(`/api/rooms/allocated/${sessionId}`);
+        const roomsData = await roomsResponse.json();
+        
+        if (!roomsData.success || roomsData.rooms.length === 0) {
+            alert('No rooms found for this session');
+            return;
+        }
+        
+        // Get available staff
+        const availableStaff = allStaff.filter(s => s.is_active);
+        
+        if (availableStaff.length === 0) {
+            alert('No active staff members available');
+            return;
+        }
+        
+        let staffIndex = 0;
+        let allocated = 0;
+        
+        for (const room of roomsData.rooms) {
+            // Allocate 2 staff per room
+            for (let i = 0; i < 2 && staffIndex < availableStaff.length; i++) {
+                const staff = availableStaff[staffIndex];
+                const role = i === 0 ? 'Chief Invigilator' : 'Invigilator';
+                
+                try {
+                    const response = await fetch('/api/staff-allocations/allocate', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            staff_id: staff.staff_id,
+                            room_code: room.room_code,
+                            room_name: room.room_name,
+                            role: role
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        allocated++;
+                    }
+                } catch (error) {
+                    console.error('Error allocating:', error);
+                }
+                
+                staffIndex++;
+            }
+        }
+        
+        alert(`✅ Auto-allocation complete! Allocated ${allocated} staff members.`);
+        loadRoomsForAllocation();
+        
+    } catch (error) {
+        console.error('Auto-allocation error:', error);
+        alert('Auto-allocation failed');
+    }
+}
+
+        
+        // Load allocation sessions
+        // Load allocation sessions - CORRECTED
+async function loadAllocationSessions() {
+    try {
+        console.log('📡 Fetching allocation sessions...');
+        
+        const response = await fetch('/api/allocation-sessions/all');
+        const data = await response.json();
+        
+        console.log('Response:', data);
+        
+        if (data.success) {
+            allSessions = data.sessions;
+            console.log(`✅ Found ${allSessions.length} sessions`);
+            
+            const sessionSelect = document.getElementById('allocationSessionSelect');
+            const viewSessionSelect = document.getElementById('viewSessionSelect');
+            
+            if (allSessions.length === 0) {
+                console.warn('⚠️ No sessions available');
+                sessionSelect.innerHTML = '<option value="">-- No Sessions Available --</option>';
+                viewSessionSelect.innerHTML = '<option value="">-- No Sessions Available --</option>';
+                return;
+            }
+            
+            const options = allSessions.map(s => 
+                `<option value="${s.session_id}">
+                    ${s.session_id} - ${s.subject_codes} (${s.total_students} students, ${s.total_rooms} rooms)
+                </option>`
+            ).join('');
+            
+            sessionSelect.innerHTML = '<option value="">-- Select Session --</option>' + options;
+            viewSessionSelect.innerHTML = '<option value="">-- Select Session --</option>' + options;
+            
+            console.log('✅ Sessions loaded in dropdowns');
+        } else {
+            console.error('❌ Failed to fetch sessions:', data.message);
+            alert('Failed to load sessions: ' + data.message);
+        }
+    } catch (error) {
+        console.error('❌ Error loading sessions:', error);
+        alert('Error loading sessions: ' + error.message);
+    }
+}
+
+        
+        // Load rooms for allocation
+        async function loadRoomsForAllocation() {
+            const sessionId = document.getElementById('allocationSessionSelect').value;
+            
+            if (!sessionId) {
+                alert('Please select a session first');
+                return;
+            }
+            
+            currentSessionId = sessionId;
+            
+            try {
+                const response = await fetch(`/api/rooms/allocated/${sessionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayRoomsForAllocation(data.rooms, sessionId);
+                }
+            } catch (error) {
+                console.error('Error loading rooms:', error);
+                showAlert('Failed to load rooms', 'danger');
+            }
+        }
+        
+        // Display rooms for allocation
+        function displayRoomsForAllocation(rooms, sessionId) {
+            const container = document.getElementById('roomsAllocationContainer');
+            
+            if (rooms.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-door-closed"></i>
+                        <h4>No rooms found for this session</h4>
+                        <p>Please check if student allocations exist for this session</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="row">
+                    ${rooms.map(room => `
+                        <div class="col-md-4 mb-3">
+                            <div class="room-card">
+                                <h5><i class="fas fa-door-open text-primary"></i> ${room.room_name}</h5>
+                                <p class="mb-2">
+                                    <strong>Code:</strong> ${room.room_code}<br>
+                                    <strong>Students:</strong> ${room.student_count}
+                                </p>
+                                <button class="btn btn-primary btn-sm w-100" 
+                                        onclick="openAllocateModal('${room.room_code}', '${room.room_name}', '${sessionId}')">
+                                    <i class="fas fa-user-plus"></i> Allocate Staff
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // Open allocate modal
+        async function openAllocateModal(roomCode, roomName, sessionId) {
+            document.getElementById('modalRoomCode').value = roomCode;
+            document.getElementById('modalRoomName').value = roomName;
+            document.getElementById('modalSessionId').value = sessionId;
+            
+            // Populate staff dropdown
+            const staffSelect = document.getElementById('modalStaffSelect');
+            staffSelect.innerHTML = '<option value="">-- Select Staff --</option>' + 
+                allStaff.filter(s => s.is_active).map(s => 
+                    `<option value="${s.staff_id}">${s.staff_name} (${s.staff_id}) - ${s.department}</option>`
+                ).join('');
+            
+            // Load current allocations for this room
+            await loadCurrentRoomAllocations(sessionId, roomCode);
+            
+            const modal = new bootstrap.Modal(document.getElementById('allocateStaffModal'));
+            modal.show();
+        }
+        
+        // Load current room allocations
+        async function loadCurrentRoomAllocations(sessionId, roomCode) {
+            try {
+                const response = await fetch(`/api/staff-allocations/session/${sessionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const roomAllocations = data.allocations.filter(a => a.room_code === roomCode);
+                    
+                    const listDiv = document.getElementById('currentStaffList');
+                    
+                    if (roomAllocations.length === 0) {
+                        listDiv.innerHTML = '<p class="text-muted">No staff allocated yet</p>';
+                    } else {
+                        listDiv.innerHTML = roomAllocations.map(a => `
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                                <div>
+                                    <strong>${a.staff_name}</strong> (${a.staff_id})<br>
+                                    <small class="text-muted">${a.role}</small>
+                                </div>
+                                <button class="btn btn-sm btn-danger" 
+                                        onclick="removeAllocation(${a.id})">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading allocations:', error);
+            }
+        }
+        
+        // Allocate staff to room
+        async function allocateStaffToRoom() {
+            const sessionId = document.getElementById('modalSessionId').value;
+            const roomCode = document.getElementById('modalRoomCode').value;
+            const roomName = document.getElementById('modalRoomName').value;
+            const staffId = document.getElementById('modalStaffSelect').value;
+            const role = document.getElementById('modalRoleSelect').value;
+            
+            if (!staffId) {
+                alert('Please select a staff member');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/staff-allocations/allocate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        staff_id: staffId,
+                        room_code: roomCode,
+                        room_name: roomName,
+                        role: role
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Staff allocated successfully!');
+                    await loadCurrentRoomAllocations(sessionId, roomCode);
+                    document.getElementById('modalStaffSelect').value = '';
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error allocating staff:', error);
+                alert('Failed to allocate staff');
+            }
+        }
+        
+        // Remove allocation
+        async function removeAllocation(allocationId) {
+            if (!confirm('Remove this staff allocation?')) return;
+            
+            try {
+                const response = await fetch(`/api/staff-allocations/${allocationId}/remove`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Allocation removed');
+                    const sessionId = document.getElementById('modalSessionId').value;
+                    const roomCode = document.getElementById('modalRoomCode').value;
+                    await loadCurrentRoomAllocations(sessionId, roomCode);
+                }
+            } catch (error) {
+                console.error('Error removing allocation:', error);
+            }
+        }
+        
+        // Load allocations view
+        async function loadAllocationsView() {
+            const sessionId = document.getElementById('viewSessionSelect').value;
+            
+            if (!sessionId) {
+                alert('Please select a session');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/staff-allocations/session/${sessionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayAllocationsView(data.allocations);
+                    document.getElementById('totalAllocations').textContent = data.allocations.length;
+                    
+                    // Count unique rooms
+                    const uniqueRooms = [...new Set(data.allocations.map(a => a.room_code))];
+                    document.getElementById('allocatedRooms').textContent = uniqueRooms.length;
+                }
+            } catch (error) {
+                console.error('Error loading allocations:', error);
+            }
+        }
+        
+        // Display allocations view
+        function displayAllocationsView(allocations) {
+            const container = document.getElementById('allocationsViewContainer');
+            
+            if (allocations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h4>No allocations found</h4>
+                        <p>No staff members have been allocated to rooms yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Group by room
+            const byRoom = {};
+            allocations.forEach(a => {
+                if (!byRoom[a.room_code]) {
+                    byRoom[a.room_code] = {
+                        room_name: a.room_name,
+                        staff: []
+                    };
+                }
+                byRoom[a.room_code].staff.push(a);
+            });
+            
+            container.innerHTML = `
+                <div class="row">
+                    ${Object.keys(byRoom).map(roomCode => `
+                        <div class="col-md-6 mb-3">
+                            <div class="room-card allocated">
+                                <h5>
+                                    <i class="fas fa-door-open text-success"></i> 
+                                    ${byRoom[roomCode].room_name}
+                                    <span class="allocation-badge">${byRoom[roomCode].staff.length} Staff</span>
+                                </h5>
+                                <p><strong>Room Code:</strong> ${roomCode}</p>
+                                <hr>
+                                ${byRoom[roomCode].staff.map(s => `
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong>${s.staff_name}</strong> (${s.staff_id})<br>
+                                            <small class="text-muted">${s.role} • ${s.department}</small>
+                                        </div>
+                                        <button class="btn btn-sm btn-danger" 
+                                                onclick="removeAllocation(${s.id})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // Delete staff
+        async function deleteStaff(staffId) {
+            if (!confirm('Are you sure you want to delete this staff member?')) return;
+            
+            try {
+                const response = await fetch(`/api/staff/${staffId}/delete`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Staff deleted successfully');
+                    loadStaff();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error deleting staff:', error);
+                alert('Failed to delete staff');
+            }
+        }
+        
+        // Auto allocate staff (simple algorithm)
+        async function autoAllocateStaff() {
+            const sessionId = document.getElementById('allocationSessionSelect').value;
+            
+            if (!sessionId) {
+                alert('Please select a session first');
+                return;
+            }
+            
+            if (!confirm('Auto-allocate available staff to rooms? This will allocate 1-2 staff per room.')) {
+                return;
+            }
+            
+            try {
+                // Get rooms
+                const roomsResponse = await fetch(`/api/rooms/allocated/${sessionId}`);
+                const roomsData = await roomsResponse.json();
+                
+                if (!roomsData.success || roomsData.rooms.length === 0) {
+                    alert('No rooms found for this session');
+                    return;
+                }
+                
+                // Get available staff
+                const availableStaff = allStaff.filter(s => s.is_active);
+                
+                if (availableStaff.length === 0) {
+                    alert('No active staff members available');
+                    return;
+                }
+                
+                let staffIndex = 0;
+                let allocated = 0;
+                
+                for (const room of roomsData.rooms) {
+                    // Allocate 2 staff per room (or less if not enough staff)
+                    for (let i = 0; i < 2 && staffIndex < availableStaff.length; i++) {
+                        const staff = availableStaff[staffIndex];
+                        const role = i === 0 ? 'Chief Invigilator' : 'Invigilator';
+                        
+                        try {
+                            await fetch('/api/staff-allocations/allocate', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({
+                                    session_id: sessionId,
+                                    staff_id: staff.staff_id,
+                                    room_code: room.room_code,
+                                    room_name: room.room_name,
+                                    role: role
+                                })
+                            });
+                            allocated++;
+                        } catch (error) {
+                            console.error('Error allocating:', error);
+                        }
+                        
+                        staffIndex++;
+                    }
+                }
+                
+                alert(`✅ Auto-allocation complete! Allocated ${allocated} staff members.`);
+                loadRoomsForAllocation();
+                
+            } catch (error) {
+                console.error('Auto-allocation error:', error);
+                alert('Auto-allocation failed');
+            }
+        }
+        
+        function showAlert(message, type) {
+            alert(message);
+        }
+    </script>
+</body>
+</html>

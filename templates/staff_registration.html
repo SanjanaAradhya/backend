@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Portal - VTU Exam System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .registration-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .btn-action {
+            padding: 20px;
+            border-radius: 15px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.3s;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-5px);
+        }
+        
+        .btn-login-action {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .btn-register-action {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .form-section {
+            display: none;
+        }
+        
+        .form-section.active {
+            display: block;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 10px;
+            width: 100%;
+            margin-top: 20px;
+            color: white;
+        }
+        
+        .btn-login-submit {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .alert {
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group-text {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-right: none;
+        }
+        
+        .form-control-icon {
+            border-left: none;
+        }
+        
+        .back-button {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="registration-container">
+            <div class="header">
+                <h1><i class="fas fa-user-tie"></i> Staff Portal</h1>
+                <p class="text-muted">VTU Examination System</p>
+            </div>
+            
+            <!-- Action Selection -->
+            <div id="actionSelection">
+                <div class="action-buttons">
+                    <button class="btn-action btn-login-action" onclick="showLogin()">
+                        <i class="fas fa-sign-in-alt fa-3x"></i>
+                        <span>Staff Login</span>
+                        <small>View Your Allocations</small>
+                    </button>
+                    <button class="btn-action btn-register-action" onclick="showRegister()">
+                        <i class="fas fa-user-plus fa-3x"></i>
+                        <span>New Registration</span>
+                        <small>Register as Staff</small>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginSection" class="form-section">
+                <h4 class="text-center mb-4" style="color: #28a745;">
+                    <i class="fas fa-sign-in-alt"></i> Staff Login
+                </h4>
+                
+                <div id="loginAlert"></div>
+                
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="loginStaffId" class="form-label">
+                            <i class="fas fa-id-card text-success"></i> Staff ID *
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                            <input type="text" class="form-control form-control-icon" id="loginStaffId" 
+                                   placeholder="Enter your Staff ID" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-submit btn-login-submit" id="loginBtn">
+                        <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+                    </button>
+                </form>
+                
+                <div class="back-button">
+                    <button class="btn btn-link" onclick="showActions()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Registration Form -->
+            <div id="registerSection" class="form-section">
+                <h4 class="text-center mb-4" style="color: #667eea;">
+                    <i class="fas fa-user-plus"></i> New Staff Registration
+                </h4>
+                
+                <div id="registerAlert"></div>
+                
+                <form id="staffRegistrationForm">
+                    <div class="mb-3">
+                        <label for="staffId" class="form-label">
+                            <i class="fas fa-id-card text-primary"></i> Staff ID *
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                            <input type="text" class="form-control form-control-icon" id="staffId" 
+                                   placeholder="Enter Staff ID (e.g., STAFF001)" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="staffName" class="form-label">
+                            <i class="fas fa-user text-success"></i> Staff Name *
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control form-control-icon" id="staffName" 
+                                   placeholder="Enter Full Name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="department" class="form-label">
+                            <i class="fas fa-building text-warning"></i> Department *
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-building"></i></span>
+                            <select class="form-control form-control-icon" id="department" required>
+                                <option value="">Select Department</option>
+                                <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                                <option value="Information Science & Engineering">Information Science & Engineering</option>
+                                <option value="Electronics & Communication Engineering">Electronics & Communication Engineering</option>
+                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                <option value="Civil Engineering">Civil Engineering</option>
+                                <option value="Electrical & Electronics Engineering">Electrical & Electronics Engineering</option>
+                                <option value="MBA">MBA</option>
+                                <option value="MCA">MCA</option>
+                                <option value="Administration">Administration</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope text-info"></i> Email (Optional)
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" class="form-control form-control-icon" id="email" 
+                                   placeholder="staff@example.com">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">
+                            <i class="fas fa-phone text-danger"></i> Phone (Optional)
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                            <input type="tel" class="form-control form-control-icon" id="phone" 
+                                   placeholder="9876543210" pattern="[0-9]{10}">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-submit" id="registerBtn">
+                        <i class="fas fa-user-plus"></i> Register Staff
+                    </button>
+                </form>
+                
+                <div class="back-button">
+                    <button class="btn btn-link" onclick="showActions()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="/admin/staff-management" class="text-decoration-none">
+                    <i class="fas fa-shield-alt"></i> Admin Panel
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Show/Hide sections
+        function showLogin() {
+            document.getElementById('actionSelection').style.display = 'none';
+            document.getElementById('loginSection').classList.add('active');
+            document.getElementById('registerSection').classList.remove('active');
+        }
+        
+        function showRegister() {
+            document.getElementById('actionSelection').style.display = 'none';
+            document.getElementById('registerSection').classList.add('active');
+            document.getElementById('loginSection').classList.remove('active');
+        }
+        
+        function showActions() {
+            document.getElementById('actionSelection').style.display = 'block';
+            document.getElementById('loginSection').classList.remove('active');
+            document.getElementById('registerSection').classList.remove('active');
+        }
+        
+        // Login Form
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const staffId = document.getElementById('loginStaffId').value.trim();
+            
+            if (!staffId) {
+                showLoginAlert('Please enter your Staff ID', 'danger');
+                return;
+            }
+            
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            
+            try {
+                const response = await fetch('/api/staff/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ staff_id: staffId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showLoginAlert('✅ Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = `/staff-view/${staffId}`;
+                    }, 1000);
+                } else {
+                    showLoginAlert('❌ ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showLoginAlert('❌ Login failed: ' + error.message, 'danger');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Dashboard';
+            }
+        });
+        
+        // Registration Form
+        document.getElementById('staffRegistrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const staffId = document.getElementById('staffId').value.trim();
+            const staffName = document.getElementById('staffName').value.trim();
+            const department = document.getElementById('department').value;
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            
+            if (!staffId || !staffName || !department) {
+                showRegisterAlert('Please fill all required fields', 'danger');
+                return;
+            }
+            
+            const registerBtn = document.getElementById('registerBtn');
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+            
+            try {
+                const response = await fetch('/api/staff/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        staff_id: staffId,
+                        staff_name: staffName,
+                        department: department,
+                        email: email || null,
+                        phone: phone || null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showRegisterAlert('✅ Registration successful!', 'success');
+                    document.getElementById('staffRegistrationForm').reset();
+                    
+                    setTimeout(() => {
+                        if (confirm('Would you like to login now?')) {
+                            document.getElementById('loginStaffId').value = staffId;
+                            showLogin();
+                        }
+                    }, 1500);
+                } else {
+                    showRegisterAlert('❌ ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showRegisterAlert('❌ Registration failed: ' + error.message, 'danger');
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Register Staff';
+            }
+        });
+        
+        function showLoginAlert(message, type) {
+            document.getElementById('loginAlert').innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+        
+        function showRegisterAlert(message, type) {
+            document.getElementById('registerAlert').innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

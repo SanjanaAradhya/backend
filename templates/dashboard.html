@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTU Exam Management Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+            --sidebar-width: 250px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h4 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .sidebar-header p {
+            margin: 5px 0 0 0;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            margin: 5px 15px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.full-width {
+            margin-left: 0;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .toggle-sidebar {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            cursor: pointer;
+            margin-right: 20px;
+        }
+
+        .page-title {
+            flex: 1;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        /* Dashboard Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+            border-left: 4px solid;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card.primary { border-left-color: var(--primary-color); }
+        .stat-card.success { border-left-color: var(--success-color); }
+        .stat-card.warning { border-left-color: var(--warning-color); }
+        .stat-card.danger { border-left-color: var(--danger-color); }
+
+        .stat-card .icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .stat-card.primary .icon { background: var(--primary-color); }
+        .stat-card.success .icon { background: var(--success-color); }
+        .stat-card.warning .icon { background: var(--warning-color); }
+        .stat-card.danger .icon { background: var(--danger-color); }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 5px 0;
+            color: var(--dark-color);
+        }
+
+        .stat-card p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        /* Seat Allocation Styles */
+        .allocation-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .control-group {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-select, .form-control {
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            padding: 10px 12px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .progress-container {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* 3D Visualization */
+        .visualization-container {
+            background: #1a1a1a;
+            border-radius: 15px;
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .visualization-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        .viz-btn {
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .viz-btn:hover {
+            background: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .room-layout {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .seat {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .seat:hover {
+            transform: scale(1.1);
+        }
+
+        .seat.occupied { background: var(--success-color); }
+        .seat.vacant { background: #6b7280; }
+        .seat.cse { background: #3b82f6; }
+        .seat.ise { background: #10b981; }
+        .seat.ece { background: #f59e0b; }
+        .seat.mech { background: #ef4444; }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .top-bar {
+                padding: 15px 20px;
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+
+            .allocation-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .room-layout {
+                grid-template-columns: repeat(8, 1fr);
+                max-width: 300px;
+            }
+
+            .seat {
+                width: 25px;
+                height: 25px;
+                font-size: 0.6rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hide sections initially */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4><i class="fas fa-graduation-cap me-2"></i>VTU Dashboard</h4>
+            <p>Exam Management System</p>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#dashboard" class="nav-link active" onclick="showSection('dashboard')">
+                    <i class="fas fa-tachometer-alt"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#admin" class="nav-link" onclick="showSection('admin')">
+                    <i class="fas fa-users-cog"></i>Admin Panel
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#allocation" class="nav-link" onclick="showSection('allocation')">
+                    <i class="fas fa-chair"></i>Seat Allocation
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#visualization" class="nav-link" onclick="showSection('visualization')">
+                    <i class="fas fa-cube"></i>3D Visualization
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#chatbot" class="nav-link" onclick="showSection('chatbot')">
+                    <i class="fas fa-robot"></i>Registration Bot
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#reports" class="nav-link" onclick="showSection('reports')">
+                    <i class="fas fa-chart-bar"></i>Reports & Analytics
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#settings" class="nav-link" onclick="showSection('settings')">
+                    <i class="fas fa-cog"></i>Settings
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <button class="toggle-sidebar" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title" id="pageTitle">Dashboard Overview</h1>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <!-- Statistics Cards -->
+                <div class="stats-row">
+                    <div class="stat-card primary">
+                        <div class="icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 id="totalStudents">0</h3>
+                        <p>Total Students</p>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <h3 id="totalRegistrations">0</h3>
+                        <p>Total Registrations</p>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="icon">
+                            <i class="fas fa-chair"></i>
+                        </div>
+                        <h3 id="allocatedSeats">0</h3>
+                        <p>Allocated Seats</p>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <h3 id="totalRooms">12</h3>
+                        <p>Total Rooms</p>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="content-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-bolt"></i>Quick Actions
+                    </h2>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary w-100" onclick="showSection('admin')">
+                                <i class="fas fa-users-cog me-2"></i>Admin Panel
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary w-100" onclick="showSection('allocation')">
+                                <i class="fas fa-chair me-2"></i>Allocate Seats
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary w-100" onclick="showSection('visualization')">
+                                <i class="fas fa-cube me-2"></i>3D View
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary w-100" onclick="showSection('chatbot')">
+                                <i class="fas fa-robot me-2"></i>Registration Bot
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel Section -->
+            <div id="admin" class="content-section">
+                <h2 class="section-title">
+                    <i class="fas fa-users-cog"></i>Admin Panel
+                </h2>
+                <div style="height: 600px; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+                    <iframe src="admin.html" width="100%" height="100%" frameborder="0" style="border-radius: 10px;"></iframe>
+                </div>
+            </div>
+
+            <!-- Seat Allocation Section -->
+            <div id="allocation" class="content-section">
+                <h2 class="section-title">
+                    <i class="fas fa-chair"></i>AI-Powered Seat Allocation
+                </h2>
+                
+                <div class="allocation-controls">
+                    <div class="control-group">
+                        <label for="allocationMethod">Allocation Method</label>
+                        <select id="allocationMethod" class="form-select">
+                            <option value="ai">AI-Optimized Allocation</option>
+                            <option value="random">Random Allocation</option>
+                            <option value="branch">Branch-wise Allocation</option>
+                            <option value="semester">Semester-wise Allocation</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="preventAdjacent">Prevention Settings</label>
+                        <select id="preventAdjacent" class="form-select">
+                            <option value="subject">Prevent Same Subject Adjacent</option>
+                            <option value="branch">Prevent Same Branch Adjacent</option>
+                            <option value="backlog">Separate Backlog Students</option>
+                            <option value="all">All Prevention Rules</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="roomCapacity">Room Capacity</label>
+                        <input type="number" id="roomCapacity" class="form-control" value="40" min="20" max="100">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary w-100" onclick="startAllocation()">
+                            <i class="fas fa-magic me-2"></i>Start AI Allocation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="progress-container" id="allocationProgress">
+                    <h5>Allocation Progress</h5>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 0%" id="progressBar"></div>
+                    </div>
+                    <div class="mt-2">
+                        <small id="progressText">Initializing allocation...</small>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="content-section">
+                            <h5><i class="fas fa-cogs me-2"></i>Allocation Results</h5>
+                            <div id="allocationResults">
+                                <p class="text-muted">No allocation performed yet. Click "Start AI Allocation" to begin.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="content-section">
+                            <h5><i class="fas fa-exclamation-triangle me-2"></i>Conflict Detection</h5>
+                            <div id="conflictResults">
+                                <p class="text-muted">Conflict analysis will appear here after allocation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3D Visualization Section -->
+            <div id="visualization" class="content-section">
+                <h2 class="section-title">
+                    <i class="fas fa-cube"></i>3D Exam Hall Visualization
+                </h2>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="roomSelect">Select Room</label>
+                        <select id="roomSelect" class="form-select">
+                            <option value="room1">Room R101 - CSE Block</option>
+                            <option value="room2">Room R102 - ISE Block</option>
+                            <option value="room3">Room R103 - ECE Block</option>
+                            <option value="room4">Room R104 - MECH Block</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="viewMode">View Mode</label>
+                        <select id="viewMode" class="form-select">
+                            <option value="overview">Overview</option>
+                            <option value="detailed">Detailed View</option>
+                            <option value="walkthrough">Walkthrough</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>&nbsp;</label>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary me-2" onclick="toggleStudentNames()">
+                                <i class="fas fa-tag me-1"></i>Names
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="toggleFullscreen()">
+                                <i class="fas fa-expand me-1"></i>Fullscreen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visualization-container" id="visualizationContainer">
+                    <div class="visualization-controls">
+                        <button class="viz-btn" onclick="rotateView('left')">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <button class="viz-btn" onclick="rotateView('right')">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                        <button class="viz-btn" onclick="zoomIn()">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button class="viz-btn" onclick="zoomOut()">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- 3D Room Layout Simulation -->
+                    <div class="room-layout" id="roomLayout">
+                        <!-- Seats will be generated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #3b82f6;"></div>
+                        <span>CSE Students</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <span>ISE Students</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f59e0b;"></div>
+                        <span>ECE Students</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ef4444;"></div>
+                        <span>MECH Students</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #6b7280;"></div>
+                        <span>Vacant</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Bot Section -->
+            <div id="chatbot" class="content-section">
+                <h2 class="section-title">
+                    <i class="fas fa-robot"></i>VTU Registration Chatbot
+                </h2>
+                <div style="height: 600px; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+                    <iframe src="chatbot.html" width="100%" height="100%" frameborder="0" style="border-radius: 10px;"></iframe>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div id="reports" class="content-section">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-bar"></i>Reports & Analytics
+                </h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="content-section">
+                            <h5><i class="fas fa-download me-2"></i>Export Reports</h5>
+                            <button class="btn btn-outline-primary me-2 mb-2">
+                                <i class="fas fa-file-excel me-1"></i>Student List (Excel)
+                            </button>
+                            <button class="btn btn-outline-primary me-2 mb-2">
+                                <i class="fas fa-file-pdf me-1"></i>Seating Chart (PDF)
+                            </button>
+                            <button class="btn btn-outline-primary mb-2">
+                                <i class="fas fa-file-csv me-1"></i>Allocation Data (CSV)
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="content-section">
+                            <h5><i class="fas fa-chart-pie me-2"></i>Statistics</h5>
+                            <p><strong>Branch Distribution:</strong></p>
+                            <div class="progress mb-2">
+                                <div class="progress-bar bg-primary" style="width: 35%">CSE (35%)</div>
+                            </div>
+                            <div class="progress mb-2">
+                                <div class="progress-bar bg-success" style="width: 25%">ISE (25%)</div>
+                            </div>
+                            <div class="progress mb-2">
+                                <div class="progress-bar bg-warning" style="width: 20%">ECE (20%)</div>
+                            </div>
+                            <div class="progress mb-2">
+                                <div class="progress-bar bg-danger" style="width: 20%">MECH (20%)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings" class="content-section">
+                <h2 class="section-title">
+                    <i class="fas fa-cog"></i>System Settings
+                </h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="content-section">
+                            <h5><i class="fas fa-university me-2"></i>University Settings</h5>
+                            <div class="mb-3">
+                                <label class="form-label">University Name</label>
+                                <input type="text" class="form-control" value="Visvesvaraya Technological University">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Exam Session</label>
+                                <select class="form-select">
+                                    <option>Dec 2024 - Jan 2025</option>
+                                    <option>May - June 2025</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="content-section">
+                            <h5><i class="fas fa-cogs me-2"></i>System Configuration</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Default Room Capacity</label>
+                                <input type="number" class="form-control" value="40">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Auto-Allocation</label>
+                                <select class="form-select">
+                                    <option>Enabled</option>
+                                    <option>Disabled</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global Variables
+        let sidebarCollapsed = false;
+        let currentSection = 'dashboard';
+
+        // Initialize Dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardStats();
+            generateRoomLayout();
+            
+            // Auto-refresh stats every 30 seconds
+            setInterval(loadDashboardStats, 30000);
+        });
+
+        // Navigation Functions
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('full-width');
+            }
+        }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update navigation
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+            document.querySelector(`[onclick="showSection('${sectionId}')"]`).classList.add('active');
+            
+            // Update page title
+            const titles = {
+                'dashboard': 'Dashboard Overview',
+                'admin': 'Admin Panel',
+                'allocation': 'Seat Allocation',
+                'visualization': '3D Visualization',
+                'chatbot': 'Registration Bot',
+                'reports': 'Reports & Analytics',
+                'settings': 'System Settings'
+            };
+            document.getElementById('pageTitle').textContent = titles[sectionId];
+            
+            currentSection = sectionId;
+            
+            // Hide sidebar on mobile after selection
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('show');
+            }
+        }
+
+        // Dashboard Stats Functions
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch('/api/students');
+                const students = await response.json();
+                
+                document.getElementById('totalStudents').textContent = students.length;
+                document.getElementById('totalRegistrations').textContent = students.length;
+                
+                // Calculate allocated seats (simulate)
+                const allocated = Math.floor(students.length * 0.8);
+                document.getElementById('allocatedSeats').textContent = allocated;
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                // Show placeholder numbers
+                document.getElementById('totalStudents').textContent = '0';
+                document.getElementById('totalRegistrations').textContent = '0';
+                document.getElementById('allocatedSeats').textContent = '0';
+            }
+        }
+
+        // Seat Allocation Functions
+        function startAllocation() {
+            const method = document.getElementById('allocationMethod').value;
+            const prevention = document.getElementById('preventAdjacent').value;
+            const capacity = document.getElementById('roomCapacity').value;
+            
+            const progressContainer = document.getElementById('allocationProgress');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            progressContainer.style.display = 'block';
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    progressBar.style.width = '100%';
+                    progressText.textContent = 'Allocation completed successfully!';
+                    
+                    // Show results after completion
+                    setTimeout(() => {
+                        showAllocationResults(method, capacity);
+                    }, 1000);
+                } else {
+                    progressBar.style.width = progress + '%';
+                    progressText.textContent = `Processing ${method} allocation... ${Math.floor(progress)}%`;
+                }
+            }, 500);
+        }
+
+        function showAllocationResults(method, capacity) {
+            const resultsDiv = document.getElementById('allocationResults');
+            const conflictDiv = document.getElementById('conflictResults');
+            
+            // Simulate allocation results
+            const totalStudents = parseInt(document.getElementById('totalStudents').textContent) || 45;
+            const roomsUsed = Math.ceil(totalStudents / capacity);
+            
+            resultsDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle me-2"></i>Allocation Successful</h6>
+                    <ul class="mb-0">
+                        <li>Method: ${method.toUpperCase()}</li>
+                        <li>Students Allocated: ${totalStudents}</li>
+                        <li>Rooms Used: ${roomsUsed}</li>
+                        <li>Seats per Room: ${capacity}</li>
+                        <li>Efficiency: 98.5%</li>
+                    </ul>
+                </div>
+            `;
+            
+            conflictDiv.innerHTML = `
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Conflict Analysis</h6>
+                    <ul class="mb-0">
+                        <li>Same Subject Adjacent: 0 conflicts</li>
+                        <li>Same Branch Adjacent: 2 conflicts (resolved)</li>
+                        <li>Backlog Separation: 100% achieved</li>
+                        <li>Overall Conflict Score: 0.2%</li>
+                    </ul>
+                </div>
+            `;
+            
+            // Update 3D visualization
+            updateRoomVisualization();
+        }
+
+        // 3D Visualization Functions
+        function generateRoomLayout() {
+            const roomLayout = document.getElementById('roomLayout');
+            const branches = ['cse', 'ise', 'ece', 'mech', 'vacant'];
+            
+            roomLayout.innerHTML = '';
+            
+            for (let i = 0; i < 40; i++) {
+                const seat = document.createElement('div');
+                const branch = branches[Math.floor(Math.random() * branches.length)];
+                
+                seat.className = `seat ${branch}`;
+                seat.textContent = (i + 1).toString().padStart(2, '0');
+                seat.title = `Seat ${i + 1} - ${branch.toUpperCase()}`;
+                
+                seat.addEventListener('click', () => {
+                    alert(`Seat ${i + 1}\nBranch: ${branch.toUpperCase()}\nStudent: ${getRandomStudentName()}`);
+                });
+                
+                roomLayout.appendChild(seat);
+            }
+        }
+
+        function updateRoomVisualization() {
+            // Regenerate room layout with new allocation
+            generateRoomLayout();
+        }
+
+        function rotateView(direction) {
+            const roomLayout = document.getElementById('roomLayout');
+            const currentRotation = roomLayout.dataset.rotation || 0;
+            const newRotation = direction === 'left' ? 
+                parseInt(currentRotation) - 15 : 
+                parseInt(currentRotation) + 15;
+            
+            roomLayout.style.transform = `rotateY(${newRotation}deg)`;
+            roomLayout.dataset.rotation = newRotation;
+        }
+
+        function zoomIn() {
+            const roomLayout = document.getElementById('roomLayout');
+            const currentScale = roomLayout.dataset.scale || 1;
+            const newScale = Math.min(parseFloat(currentScale) + 0.1, 2);
+            
+            roomLayout.style.transform += ` scale(${newScale})`;
+            roomLayout.dataset.scale = newScale;
+        }
+
+        function zoomOut() {
+            const roomLayout = document.getElementById('roomLayout');
+            const currentScale = roomLayout.dataset.scale || 1;
+            const newScale = Math.max(parseFloat(currentScale) - 0.1, 0.5);
+            
+            roomLayout.style.transform += ` scale(${newScale})`;
+            roomLayout.dataset.scale = newScale;
+        }
+
+        function toggleStudentNames() {
+            const seats = document.querySelectorAll('.seat');
+            seats.forEach((seat, index) => {
+                if (seat.textContent.match(/^\d+$/)) {
+                    seat.textContent = getRandomStudentName().split(' ')[0];
+                } else {
+                    seat.textContent = (index + 1).toString().padStart(2, '0');
+                }
+            });
+        }
+
+        function toggleFullscreen() {
+            const container = document.getElementById('visualizationContainer');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Utility Functions
+        function getRandomStudentName() {
+            const names = [
+                'Arjun Kumar', 'Priya Sharma', 'Rahul Singh', 'Ananya Rao',
+                'Vikram Patel', 'Meera Gupta', 'Sanjay Reddy', 'Kavya Nair',
+                'Aditya Joshi', 'Roshni Das', 'Karthik Iyer', 'Shruti Agarwal'
+            ];
+            return names[Math.floor(Math.random() * names.length)];
+        }
+
+        // Event Listeners
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                document.getElementById('sidebar').classList.remove('show');
+            }
+        });
+
+        // Handle room and view mode changes
+        document.getElementById('roomSelect').addEventListener('change', updateRoomVisualization);
+        document.getElementById('viewMode').addEventListener('change', function() {
+            const mode = this.value;
+            const container = document.getElementById('visualizationContainer');
+            
+            // Apply different view styles based on mode
+            switch(mode) {
+                case 'overview':
+                    container.style.perspective = '1000px';
+                    break;
+                case 'detailed':
+                    container.style.perspective = '500px';
+                    break;
+                case 'walkthrough':
+                    container.style.perspective = '300px';
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTU Subjects Management</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-graduation-cap me-2"></i>VTU Exam Registration
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/chatbot">Chatbot</a>
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="/admin">Admin</a>
+                <a class="nav-link" href="/exam-scheduler">🤖 AI Scheduler</a>
+                <a class="nav-link" href="/allocation_results">🎟️ Allocation Results</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4"><i class="fas fa-book me-2"></i>Subjects Management</h1>
+        
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="branch" class="form-label">Branch</label>
+                        <select name="branch" id="branch" class="form-select">
+                            <option value="">All Branches</option>
+                            {% for branch in branches %}
+                            <option value="{{ branch }}" {% if branch == current_branch %}selected{% endif %}>{{ branch }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="semester" class="form-label">Semester</label>
+                        <select name="semester" id="semester" class="form-select">
+                            <option value="">All Semesters</option>
+                            {% for semester in semesters %}
+                            <option value="{{ semester }}" {% if semester == current_semester %}selected{% endif %}>Semester {{ semester }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="subject_code" class="form-label">Subject Code</label>
+                        <input type="text" name="subject_code" id="subject_code" class="form-control" 
+                               value="{{ current_subject_code }}" placeholder="Search by subject code...">
+                    </div>
+                    <div class="col-md-2">
+                        <label>&nbsp;</label>
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Subjects Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5>Subjects ({{ subjects|length }} found)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Subject Code</th>
+                                <th>Subject Name</th>
+                                <th>Branch</th>
+                                <th>Semester</th>
+                                <th>Credits</th>
+                                <th>Type</th>
+                                <th>Registered Students</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in subjects %}
+                            <tr>
+                                <td><strong>{{ subject.subject_code }}</strong></td>
+                                <td>{{ subject.subject_name }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ subject.branch }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">Sem {{ subject.semester }}</span>
+                                </td>
+                                <td>{{ subject.credits }}</td>
+                                <td>
+                                    {% if subject.subject_type == 'theory' %}
+                                        <span class="badge bg-success">Theory</span>
+                                    {% elif subject.subject_type == 'practical' %}
+                                        <span class="badge bg-warning">Practical</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Project</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark">{{ subject.registered_students }}</span>
+                                </td>
+                                <td>
+                                    <a href="/subjects/{{ subject.subject_code }}/students" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-users"></i> View Students
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

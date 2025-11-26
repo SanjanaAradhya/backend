@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - VTU Exam System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            padding-bottom: 50px;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .header-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .welcome-text {
+            color: #667eea;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+        }
+        
+        .stat-value {
+            font-size: 42px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .room-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #e0e0e0;
+        }
+        
+        .room-title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 0;
+        }
+        
+        .role-badge {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        
+        .role-chief {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .role-regular {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+        
+        .branch-distribution {
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .branch-item {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 5px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .branch-name {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .student-count {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        /* Room Layout Visualization */
+        .room-layout-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+        }
+        
+        .room-layout-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .teacher-desk {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .seating-grid {
+            display: grid;
+            gap: 15px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        
+        .desk {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 100px;
+            transition: all 0.3s;
+        }
+        
+        .desk:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .seat {
+            background: #e7f3ff;
+            border: 2px solid #0066cc;
+            border-radius: 5px;
+            padding: 8px;
+            font-size: 11px;
+            text-align: center;
+        }
+        
+        .seat-number {
+            font-weight: bold;
+            color: #0066cc;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+        
+        .student-info {
+            color: #333;
+            font-size: 10px;
+            line-height: 1.3;
+        }
+        
+        .branch-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: bold;
+            margin-top: 2px;
+            display: inline-block;
+        }
+
+        
+        /* Branch Color Coding */
+        .branch-CS { background: #007bff !important; }
+        .branch-IS { background: #28a745 !important; }
+        .branch-EC { background: #ffc107 !important; color: #333 !important; }
+        .branch-ME { background: #dc3545 !important; }
+        .branch-CV { background: #6c757d !important; }
+        .branch-EE { background: #17a2b8 !important; }
+        
+        .empty-seat {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            opacity: 0.5;
+        }
+        
+        .btn-view-layout {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-view-layout:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .btn-logout {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 20px;
+        }
+        
+        .empty-state i {
+            font-size: 80px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .room-layout {
+    display: grid;
+    gap: 8px;
+    justify-content: center;
+    margin: 1rem 0;
+    padding: 1rem;
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+    background: #f8f9fa;
+}
+
+.desk {
+    display: flex;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: white;
+    padding: 8px;
+    position: relative;
+    min-height: 70px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.desk::before {
+    content: '🪑';
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px;
+}
+
+.desk.conflict {
+    border-color: #dc3545;
+    background: #f8d7da;
+}
+
+.desk.optimal {
+    border-color: #28a745;
+    background: #d4edda;
+}
+
+.desk.empty {
+    background: #f1f3f4;
+    border: 2px dashed #adb5bd;
+    opacity: 0.6;
+}
+
+.seat {
+    width: 50px;
+    height: 35px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    margin: 2px;
+}
+
+.seat:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 9px;
+    white-space: pre-line;
+    z-index: 1000;
+    max-width: 180px;
+    word-wrap: break-word;
+}
+
+.empty-seat {
+    background: #e9ecef !important;
+    color: #6c757d;
+    border: 1px dashed #adb5bd;
+}
+
+.desk-info {
+    text-align: center;
+    font-size: 9px;
+    color: #666;
+    margin-top: 3px;
+}
+
+.conflict-indicator {
+    background: #dc3545;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 8px;
+    margin: 0 2px;
+}
+
+.optimal-indicator {
+    background: #28a745;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 8px;
+    margin: 0 2px;
+}
+
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="welcome-text">
+                        <i class="fas fa-user-tie"></i> Welcome, <span id="staffName">Loading...</span>
+                    </div>
+                    <p class="mb-0">
+                        <strong>Staff ID:</strong> <span id="staffIdDisplay"></span> | 
+                        <strong>Department:</strong> <span id="staffDepartment"></span>
+                    </p>
+                </div>
+                <button class="btn btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="stats-row">
+                <div class="stat-box">
+                    <i class="fas fa-door-open fa-2x"></i>
+                    <div class="stat-value" id="totalRooms">0</div>
+                    <div class="stat-label">Rooms Allocated</div>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                    <i class="fas fa-users fa-2x"></i>
+                    <div class="stat-value" id="totalStudents">0</div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, #ffc107, #ff9800);">
+                    <i class="fas fa-graduation-cap fa-2x"></i>
+                    <div class="stat-value" id="totalBranches">0</div>
+                    <div class="stat-label">Branches</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Room Allocations -->
+        <h3 class="text-white mb-4">
+            <i class="fas fa-door-closed"></i> Your Room Allocations
+        </h3>
+        
+        <div id="roomsContainer">
+            <div class="text-center text-white">
+                <i class="fas fa-spinner fa-spin fa-3x"></i>
+                <p class="mt-3">Loading your allocations...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const staffId = "{{ staff_id }}";
+        
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('staffIdDisplay').textContent = staffId;
+            loadStaffData();
+        });
+        
+        async function loadStaffData() {
+            try {
+                const response = await fetch(`/api/staff/${staffId}/allocations`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayStaffInfo(data.staff);
+                    displayAllocations(data.allocations);
+                    updateStatistics(data.allocations);
+                } else {
+                    showError(data.message);
+                }
+            } catch (error) {
+                showError('Failed to load data: ' + error.message);
+            }
+        }
+        
+        function displayStaffInfo(staff) {
+            document.getElementById('staffName').textContent = staff.staff_name;
+            document.getElementById('staffDepartment').textContent = staff.department;
+        }
+        
+        function displayAllocations(allocations) {
+    const container = document.getElementById('roomsContainer');
+    
+    if (allocations.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No Room Allocations</h3>
+                <p class="text-muted">You haven't been assigned to any examination rooms yet.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // ✅ SORT BY DATE - NEWEST FIRST
+    const sortedAllocations = allocations.sort((a, b) => {
+        const dateA = a.allocated_at ? new Date(a.allocated_at) : new Date(0);
+        const dateB = b.allocated_at ? new Date(b.allocated_at) : new Date(0);
+        return dateB - dateA; // Descending order (newest first)
+    });
+    
+    container.innerHTML = sortedAllocations.map((alloc, index) => `
+        <div class="room-card">
+            <div class="room-header">
+                <div>
+                    <h3 class="room-title">
+                        <i class="fas fa-door-open"></i> ${alloc.room_name}
+                    </h3>
+                    <p class="mb-0 text-muted">
+                        <strong>Room Code:</strong> ${alloc.room_code} | 
+                        <strong>Session:</strong> ${alloc.session_id}
+                    </p>
+                    ${alloc.exam_date ? `
+                        <p class="mb-0 text-muted mt-2">
+                            <i class="fas fa-calendar"></i> <strong>Exam Date:</strong> ${alloc.exam_date} 
+                            ${alloc.exam_time ? `at ${alloc.exam_time}` : ''}
+                        </p>
+                    ` : ''}
+                    ${alloc.allocated_at ? `
+                        <p class="mb-0 text-muted mt-1">
+                            <i class="fas fa-clock"></i> <strong>Allocated:</strong> ${new Date(alloc.allocated_at).toLocaleString('en-IN')}
+                        </p>
+                    ` : ''}
+                </div>
+                <span class="role-badge ${alloc.role === 'Chief Invigilator' ? 'role-chief' : 'role-regular'}">
+                    <i class="fas fa-user-shield"></i> ${alloc.role}
+                </span>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="branch-distribution">
+                        <h5 class="mb-3">
+                            <i class="fas fa-chart-pie"></i> Branch-wise Count
+                        </h5>
+                        ${Object.entries(alloc.branch_distribution).map(([branch, count]) => `
+                            <div class="branch-item">
+                                <span class="branch-name">
+                                    <i class="fas fa-graduation-cap text-primary"></i> ${branch}
+                                </span>
+                                <span class="student-count">${count}</span>
+                            </div>
+                        `).join('')}
+                        
+                        <div class="mt-3 p-3 bg-white rounded border">
+                            <strong>Total Students:</strong> 
+                            <span class="text-primary fs-4">${alloc.total_students}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-8">
+                    <div class="room-layout-section" id="layout-${index}">
+                        <div class="room-layout-header">
+                            <h5><i class="fas fa-th"></i> Room Layout</h5>
+                            <button class="btn btn-sm btn-view-layout" onclick="loadRoomLayout('${alloc.session_id}', '${alloc.room_code}', ${index})">
+                                <i class="fas fa-eye"></i> View Seating Arrangement
+                            </button>
+                        </div>
+                        <div id="layout-content-${index}" class="text-center text-muted">
+                            <i class="fas fa-info-circle"></i> Click "View Seating Arrangement" to see the room layout
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+        
+        async function loadRoomLayout(sessionId, roomCode, index) {
+            const contentDiv = document.getElementById(`layout-content-${index}`);
+            contentDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading layout...';
+            
+            try {
+                const response = await fetch(`/api/room-layout/${sessionId}/${roomCode}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayRoomLayout(data, index);
+                } else {
+                    contentDiv.innerHTML = `<p class="text-danger">${data.message}</p>`;
+                }
+            } catch (error) {
+                contentDiv.innerHTML = `<p class="text-danger">Failed to load layout: ${error.message}</p>`;
+            }
+        }
+        
+//         function displayRoomLayout(data, index) {
+//     const contentDiv = document.getElementById(`layout-content-${index}`);
+    
+//     // Get room dimensions
+//     const rows = data.room_info.rows;
+//     const cols = data.room_info.cols;
+    
+//     // Create grid of desks organized by position
+//     const deskGrid = {};
+    
+//     // Initialize empty grid
+//     for (let row = 1; row <= rows; row++) {
+//         for (let col = 1; col <= cols; col++) {
+//             const key = `${row}-${col}`;
+//             deskGrid[key] = {
+//                 row: row,
+//                 col: col,
+//                 students: [],
+//                 isEmpty: true
+//             };
+//         }
+//     }
+    
+//     // Fill grid with students
+//     data.students.forEach(student => {
+//         const key = `${student.row_num}-${student.col_num}`;
+//         if (deskGrid[key]) {
+//             deskGrid[key].students.push(student);
+//             deskGrid[key].isEmpty = false;
+//         }
+//     });
+    
+//     // Teacher's desk header
+//     let html = `
+//         <div style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 30px; font-weight: bold; font-size: 16px;">
+//             <i class="fas fa-chalkboard-teacher"></i> Teacher's Desk (${data.room_info.room_name})
+//         </div>
+//     `;
+    
+//     // Room info
+//     html += `
+//         <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; border: 1px solid #ffc107;">
+//             <strong>Layout:</strong> ${rows} rows × ${cols} columns | <strong>Capacity:</strong> ${data.room_info.capacity} seats
+//         </div>
+//     `;
+    
+//     // Desk Layout Grid
+//     html += `<div style="display: grid; grid-template-columns: repeat(${cols}, 1fr); gap: 15px; margin: 20px 0;">`;
+    
+//     // Generate desk grid
+//     for (let row = 1; row <= rows; row++) {
+//         for (let col = 1; col <= cols; col++) {
+//             const key = `${row}-${col}`;
+//             const desk = deskGrid[key];
+            
+//             if (desk.isEmpty) {
+//                 // Empty desk (gray dashed border)
+//                 html += `
+//                     <div style="background: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 8px; padding: 10px; min-height: 120px; opacity: 0.5; display: flex; align-items: center; justify-content: center;">
+//                         <span style="color: #999; font-size: 12px;">Empty</span>
+//                     </div>
+//                 `;
+//             } else {
+//                 // Determine desk color based on branch
+//                 let deskColor = '#ffebee'; // Default pink
+//                 let borderColor = '#ef5350'; // Default red border
+//                 let badgeLabel = 'CONFLICT';
+                
+//                 const branches = [...new Set(desk.students.map(s => s.branch))];
+                
+//                 if (branches.length === 1) {
+//                     // Same branch - green
+//                     deskColor = '#e8f5e9';
+//                     borderColor = '#4caf50';
+//                     badgeLabel = 'OPTIMAL';
+//                 } else if (branches.length === 2) {
+//                     // Different branches - pink
+//                     deskColor = '#ffebee';
+//                     borderColor = '#ef5350';
+//                     badgeLabel = 'CONFLICT';
+//                 }
+                
+//                 html += `
+//                     <div style="background: ${deskColor}; border: 2px solid ${borderColor}; border-radius: 8px; padding: 10px; min-height: 120px; position: relative;">
+//                         <!-- Desk position label -->
+//                         <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; font-size: 10px; color: #666;">
+//                             R${row}C${col}
+//                         </div>
+                        
+//                         <!-- Optimization badge -->
+//                         <div style="text-align: center; margin-bottom: 8px;">
+//                             <span style="background: ${borderColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: bold;">
+//                                 ${badgeLabel}
+//                             </span>
+//                         </div>
+                        
+//                         <!-- Students in desk -->
+//                 `;
+                
+//                 desk.students.forEach(student => {
+//                     // Branch color coding
+//                     let branchColor = '#007bff';
+//                     const branchCode = student.branch.substring(0, 2).toUpperCase();
+                    
+//                     if (branchCode === 'CS') branchColor = '#007bff';
+//                     else if (branchCode === 'IS') branchColor = '#28a745';
+//                     else if (branchCode === 'EC') branchColor = '#ffc107';
+//                     else if (branchCode === 'ME') branchColor = '#dc3545';
+//                     else if (branchCode === 'CV' || branchCode === 'CI') branchColor = '#6c757d';
+//                     else if (branchCode === 'EE') branchColor = '#17a2b8';
+                    
+//                     html += `
+//                         <div style="background: #e7f3ff; border: 2px solid ${branchColor}; border-radius: 5px; padding: 8px; margin-bottom: 6px;">
+//                             <div style="font-weight: bold; color: ${branchColor}; font-size: 12px; text-align: center; margin-bottom: 4px;">
+//                                 ${student.seat_number}
+//                             </div>
+//                             <div style="font-size: 10px; text-align: center; color: #333; line-height: 1.3;">
+//                                 <strong>${student.usn}</strong><br>
+//                                 ${student.name.length > 12 ? student.name.substring(0, 12) + '...' : student.name}
+//                             </div>
+//                             <div style="text-align: center; margin-top: 4px;">
+//                                 <span style="background: ${branchColor}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 9px; font-weight: bold;">
+//                                     ${student.branch}
+//                                 </span>
+//                             </div>
+//                         </div>
+//                     `;
+//                 });
+                
+//                 html += `</div>`;
+//             }
+//         }
+//     }
+    
+//     html += `</div>`;
+    
+//     // Branch Legend
+//     const uniqueBranches = [...new Set(data.students.map(s => s.branch))];
+//     html += `
+//         <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px; padding: 15px; background: white; border-radius: 10px; border: 1px solid #dee2e6;">
+//             <strong>Branch Legend:</strong>
+//     `;
+    
+//     uniqueBranches.forEach(branch => {
+//         let branchColor = '#007bff';
+//         const branchCode = branch.substring(0, 2).toUpperCase();
+        
+//         if (branchCode === 'CS') branchColor = '#007bff';
+//         else if (branchCode === 'IS') branchColor = '#28a745';
+//         else if (branchCode === 'EC') branchColor = '#ffc107';
+//         else if (branchCode === 'ME') branchColor = '#dc3545';
+//         else if (branchCode === 'CV' || branchCode === 'CI') branchColor = '#6c757d';
+//         else if (branchCode === 'EE') branchColor = '#17a2b8';
+        
+//         html += `
+//             <div style="display: flex; align-items: center; gap: 8px;">
+//                 <div style="width: 20px; height: 20px; border-radius: 4px; background: ${branchColor};"></div>
+//                 <span>${branch}</span>
+//             </div>
+//         `;
+//     });
+    
+//     html += `</div>`;
+    
+//     contentDiv.innerHTML = html;
+// }
+
+    function displayRoomLayout(data, index) {
+    const contentDiv = document.getElementById(`layout-content-${index}`);
+    
+    const roomInfo = data.room_info;
+    const students = data.students;
+    
+    // Group students by position
+    const deskGrid = {};
+    
+    students.forEach(student => {
+        const key = `${student.row_num}-${student.col_num}`;
+        if (!deskGrid[key]) {
+            deskGrid[key] = [];
+        }
+        deskGrid[key].push(student);
+    });
+    
+    // Count branches
+    const branchCounts = {};
+    students.forEach(s => {
+        const branch = s.branch || 'UNKNOWN';
+        branchCounts[branch] = (branchCounts[branch] || 0) + 1;
+    });
+    
+    // Build HTML
+    let html = '';
+    
+    // Room dimensions info
+    html += `
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 10px; margin-bottom: 15px; text-align: center; font-size: 12px; color: #856404;">
+            <strong>Layout:</strong> ${roomInfo.rows} rows × ${roomInfo.cols} columns | <strong>Capacity:</strong> ${roomInfo.capacity} seats
+        </div>
+    `;
+    
+    // Branch statistics
+    html += `
+        <div style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 10px; padding: 15px; margin: 15px 0; border-left: 4px solid #007bff;">
+            <h6 style="margin-bottom: 12px;"><i class="fas fa-chart-bar" style="margin-right: 8px;"></i>Branch Distribution in This Room</h6>
+            <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+    `;
+    
+    const sortedBranches = Object.entries(branchCounts).sort((a, b) => b[1] - a[1]);
+    sortedBranches.forEach(([branch, count]) => {
+        const percentage = ((count / students.length) * 100).toFixed(1);
+        html += `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="branch-badge branch-${branch.substring(0, 2).toUpperCase()}" style="padding: 6px 12px; font-size: 0.9rem;">${branch}</span>
+                <span style="font-weight: bold;">${count}</span>
+                <span style="color: #6c757d;">(${percentage}%)</span>
+            </div>
+        `;
+    });
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    html += '<hr>';
+    html += '<h6 style="margin-bottom: 15px;"><i class="fas fa-chair" style="margin-right: 8px;"></i>Desk Layout</h6>';
+    
+    // Desk grid layout - EXACTLY LIKE ALLOCATION RESULTS
+    html += `
+        <div class="room-layout" style="display: grid; grid-template-columns: repeat(${roomInfo.cols}, 1fr); gap: 8px; padding: 1rem; border: 2px dashed #dee2e6; background: #f8f9fa; border-radius: 10px;">
+    `;
+    
+    // Generate desks
+    for (let r = 1; r <= roomInfo.rows; r++) {
+        for (let c = 1; c <= roomInfo.cols; c++) {
+            const key = `${r}-${c}`;
+            const studentsAtDesk = deskGrid[key] || [];
+            
+            // Check if conflict or optimal
+            const isConflict = studentsAtDesk.length === 2 && 
+                (studentsAtDesk[0].subject_code === studentsAtDesk[1].subject_code && 
+                 studentsAtDesk[0].branch === studentsAtDesk[1].branch);
+            const isOptimal = studentsAtDesk.length === 2 && !isConflict;
+            
+            let deskClass = 'desk';
+            if (isConflict) deskClass += ' conflict';
+            if (isOptimal) deskClass += ' optimal';
+            if (studentsAtDesk.length === 0) deskClass += ' empty';
+            
+            // Build seats HTML
+            let seatsHTML = '';
+            if (studentsAtDesk.length > 0) {
+                seatsHTML = studentsAtDesk.map(student => {
+                    const branchClass = `branch-${student.branch.substring(0, 2).toUpperCase()}`;
+                    const branchStyle = getBranchColorStyle(student.branch);
+                    
+                    return `
+                        <div class="seat ${branchClass}" 
+                             style="width: 50px; height: 35px; margin: 2px; ${branchStyle} color: white; display: flex; align-items: center; justify-content: center; border-radius: 5px; font-size: 11px; flex-direction: column; cursor: pointer;"
+                             data-tooltip="${student.name}\n${student.usn}\n${student.subject_code} - ${student.subject_name}\n${student.branch}\nDesk: ${student.desk_id || 'NA'}\n${student.desk_partner_usn ? 'Partner: ' + student.desk_partner_usn : ''}">
+                            <span style="font-size: 10px;">${student.usn.slice(-3)}</span>
+                            <span style="font-size: 7px;">${student.seat_number}</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                // Empty desk
+                seatsHTML = `
+                    <div class="seat empty-seat" style="width: 50px; height: 35px; margin: 2px;">---</div>
+                    <div class="seat empty-seat" style="width: 50px; height: 35px; margin: 2px;">---</div>
+                `;
+            }
+            
+            // Desk position info
+            const deskInfo = studentsAtDesk.length > 0 ? studentsAtDesk[0].desk_id : '';
+            
+            html += `
+                <div class="${deskClass}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 110px; min-height: 70px; position: relative;">
+                    <div style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 16px;">🪑</div>
+                    <div style="display: flex; flex-direction: row; gap: 3px; margin-bottom: 4px;">
+                        ${seatsHTML}
+                    </div>
+                    <div class="desk-info" style="text-align: center; font-size: 9px; color: #666; margin-top: 3px;">
+                        <b>${deskInfo}</b><br>
+                        <small>R${r}C${c}</small>
+                        ${isConflict ? '<span class="conflict-indicator" style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 8px; margin: 0 2px;">⚠ CONFLICT</span>' : ''}
+                        ${isOptimal ? '<span class="optimal-indicator" style="background: #28a745; color: white; padding: 2px 6px; border-radius: 10px; font-size: 8px; margin: 0 2px;">✓ OPTIMAL</span>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    html += '</div>';
+    
+    contentDiv.innerHTML = html;
+}
+
+// Helper function for branch colors
+function getBranchColorStyle(branch) {
+    const branchCode = branch.substring(0, 2).toUpperCase();
+    switch (branchCode) {
+        case 'CS': return 'background: linear-gradient(135deg, #007bff, #0056b3);';
+        case 'IS': return 'background: linear-gradient(135deg, #28a745, #1e7e34);';
+        case 'EC': return 'background: linear-gradient(135deg, #dc3545, #c82333);';
+        case 'ME': return 'background: linear-gradient(135deg, #fd7e14, #e55100);';
+        case 'CV':
+        case 'CI': return 'background: linear-gradient(135deg, #6f42c1, #5a2d91);';
+        case 'EE': return 'background: linear-gradient(135deg, #ffc107, #e0a800); color: #333;';
+        case 'AI': return 'background: linear-gradient(135deg, #17a2b8, #117a8b);';
+        case 'DS': return 'background: linear-gradient(135deg, #6610f2, #520dc2);';
+        default: return 'background: #adb5bd;';
+    }
+}
+
+
+        
+        function updateStatistics(allocations) {
+            const totalStudents = allocations.reduce((sum, alloc) => sum + alloc.total_students, 0);
+            const branches = new Set();
+            
+            allocations.forEach(alloc => {
+                Object.keys(alloc.branch_distribution).forEach(branch => branches.add(branch));
+            });
+            
+            document.getElementById('totalRooms').textContent = allocations.length;
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('totalBranches').textContent = branches.size;
+        }
+        
+        function showError(message) {
+            document.getElementById('roomsContainer').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-circle text-danger"></i>
+                    <h3>Error Loading Data</h3>
+                    <p class="text-danger">${message}</p>
+                </div>
+            `;
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/staff-registration';
+            }
+        }
+    </script>
+</body>
+</html>

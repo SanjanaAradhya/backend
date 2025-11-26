@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students Under Subject - VTU</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .student-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .student-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .subject-header {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .delete-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .delete-btn:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-graduation-cap me-2"></i>VTU Exam Registration
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/chatbot">🎤 Chatbot</a>
+                <a class="nav-link" href="/dashboard">📊 Dashboard</a>
+                <a class="nav-link" href="/subjects">📚 Subjects</a>
+                <a class="nav-link" href="/admin">👥 Admin</a>
+                <a class="nav-link" href="/exam-scheduler">🤖 AI Scheduler</a>
+                <a class="nav-link" href="/allocation_results">🎟️ Allocation Results</a>
+
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% if subject %}
+        <div class="subject-header">
+            <h1><i class="fas fa-book me-2"></i>{{ subject.subject_code }}</h1>
+            <h3>{{ subject.subject_name }}</h3>
+            <div class="mt-3">
+                <span class="badge bg-light text-dark me-2">{{ subject.branch }}</span>
+                <span class="badge bg-light text-dark me-2">Semester {{ subject.semester }}</span>
+                <span class="badge bg-light text-dark me-2">{{ subject.credits }} Credits</span>
+                <span class="badge bg-light text-dark">{{ students|length }} Students Registered</span>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-users me-2"></i>Students Registered Under This Subject</h2>
+            <a href="/subjects" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Subjects
+            </a>
+        </div>
+        
+        {% if students %}
+        <div class="row">
+            {% for student in students %}
+            <div class="col-md-6 mb-4">
+                <div class="card student-card" id="student-card-{{ student.usn }}">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ student.name }}</h5>
+                        <div>
+                            {% if student.is_backlog %}
+                            <span class="badge bg-warning me-2">Backlog</span>
+                            {% else %}
+                            <span class="badge bg-success me-2">Regular</span>
+                            {% endif %}
+                            <!-- DELETE BUTTON: use data-attributes and attach listener in JS to avoid inline Jinja quoting issues -->
+                            <button class="btn btn-sm btn-danger delete-btn delete-student-btn"
+                                    data-usn="{{ student.usn }}"
+                                    data-subject="{{ subject.subject_code }}"
+                                    data-name="{{ student.name }}"
+                                    title="Delete Student">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <strong>USN:</strong> {{ student.usn }}
+                            </div>
+                            <div class="col-6">
+                                <strong>Branch:</strong> 
+                                <span class="badge bg-info">{{ student.branch }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <strong>Semester:</strong> {{ student.semester }}
+                            </div>
+                            <div class="col-6">
+                                <strong>Has Backlogs:</strong> 
+                                <span class="badge {% if student.has_backlogs %}bg-warning{% else %}bg-success{% endif %}">
+                                    {% if student.has_backlogs %}Yes{% else %}No{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <strong>Email:</strong> {{ student.email }}
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <strong>Registration Type:</strong> 
+                                <span class="badge bg-secondary">{{ student.registration_type|title }}</span>
+                            </div>
+                            <div class="col-6">
+                                <strong>Fee Paid:</strong> 
+                                <span class="badge {% if student.exam_fee_paid %}bg-success{% else %}bg-danger{% endif %}">
+                                    {% if student.exam_fee_paid %}Yes{% else %}No{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-muted">
+                            <small>Registered: {{ student.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-user-slash fa-5x text-muted mb-3"></i>
+            <h3 class="text-muted">No students registered for this subject yet</h3>
+            <p class="text-muted">Students will appear here when they register via the chatbot</p>
+            <a href="/chatbot" class="btn btn-primary">
+                <i class="fas fa-microphone"></i> Start Registration
+            </a>
+            <a href="exam_scheduler.html" class="btn btn-primary"></a>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-exclamation-triangle fa-5x text-warning mb-3"></i>
+            <h3 class="text-warning">Subject Not Found</h3>
+            <p class="text-muted">The requested subject could not be found.</p>
+            <a href="/subjects" class="btn btn-primary">
+                <i class="fas fa-book"></i> Browse Subjects
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete <strong id="studentName"></strong> (USN: <strong id="studentUSN"></strong>) from subject <strong id="subjectCode"></strong>?</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-warning me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone and will remove the student from this subject only.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">
+                        <i class="fas fa-trash me-2"></i>Delete Student
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        console.log('📊 Subject Students page loaded');
+
+        // Attach listeners to delete buttons (use data-attributes to avoid Jinja inside JS)
+        document.querySelectorAll('.delete-student-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                deleteStudent(btn.dataset.usn, btn.dataset.subject, btn.dataset.name);
+            });
+        });
+
+        let currentDeleteUSN = '';
+        let currentSubjectCode = '';
+
+        function deleteStudent(usn, subjectCode, studentName) {
+            currentDeleteUSN = usn;
+            currentSubjectCode = subjectCode;
+            
+            document.getElementById('studentName').textContent = studentName;
+            document.getElementById('studentUSN').textContent = usn;
+            document.getElementById('subjectCode').textContent = subjectCode;
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        document.getElementById('confirmDelete').addEventListener('click', function() {
+            if (currentDeleteUSN && currentSubjectCode) {
+                fetch('/api/delete-student-from-subject', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        usn: currentDeleteUSN,
+                        subject_code: currentSubjectCode
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the student card from the UI
+                        const studentCard = document.getElementById(`student-card-${currentDeleteUSN}`);
+                        if (studentCard) {
+                            studentCard.style.transition = 'all 0.5s ease';
+                            studentCard.style.transform = 'scale(0)';
+                            studentCard.style.opacity = '0';
+                            
+                            setTimeout(() => {
+                                studentCard.remove();
+                                
+                                // Update student count in header
+                                const remainingCards = document.querySelectorAll('.student-card').length;
+                                const countBadge = document.querySelector('.badge:last-child');
+                                if (countBadge) {
+                                    countBadge.textContent = `${remainingCards} Students Registered`;
+                                }
+                                
+                                // Show message if no students left
+                                if (remainingCards === 0) {
+                                    location.reload();
+                                }
+                            }, 500);
+                        }
+                        
+                        // Show success message
+                        showAlert('success', data.message);
+                        
+                        // Close modal
+                        bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+                    } else {
+                        showAlert('danger', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Delete error:', error);
+                    showAlert('danger', 'An error occurred while deleting the student.');
+                });
+            }
+        });
+
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

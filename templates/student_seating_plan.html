@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seating Plan - {{ allocation.room_name }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .your-seat-info {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .your-seat-info h3 {
+            margin: 0 0 15px 0;
+            font-size: 24px;
+        }
+
+        .seat-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            background: rgba(255,255,255,0.2);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .seating-grid {
+            display: grid;
+            gap: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+
+        .desk {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            padding: 10px;
+            position: relative;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .desk::before {
+            content: '🪑';
+            position: absolute;
+            top: -20px;
+            font-size: 18px;
+        }
+
+        .desk.your-seat {
+            border: 3px solid #28a745;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .desk.empty {
+            background: #f1f3f4;
+            border: 2px dashed #adb5bd;
+            opacity: 0.5;
+        }
+
+        .seat {
+            width: 55px;
+            height: 40px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            margin: 3px;
+            flex-direction: column;
+        }
+
+        .seat.your-seat-marker {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
+            font-size: 11px;
+        }
+
+        .seat.other-seat {
+            background: linear-gradient(135deg, #6c757d, #495057);
+        }
+
+        .empty-seat {
+            background: #e9ecef !important;
+            color: #6c757d !important;
+            border: 1px dashed #adb5bd;
+        }
+
+        .desk-info {
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-box {
+            width: 40px;
+            height: 30px;
+            border-radius: 5px;
+        }
+
+        .room-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .instructions {
+            background: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+
+        .instructions h4 {
+            color: #004085;
+            margin-bottom: 15px;
+        }
+
+        .instructions ul {
+            margin: 0;
+            padding-left: 25px;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+            color: #004085;
+        }
+
+        @media print {
+            body { background: white; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <h1><i class="fas fa-map-marked-alt me-2"></i>Examination Seating Plan</h1>
+            <p>{{ allocation.room_name }} ({{ allocation.room_code }})</p>
+        </div>
+
+        <div class="your-seat-info">
+            <h3><i class="fas fa-user-check me-2"></i>Your Seat Details</h3>
+            <div class="seat-details">
+                <div class="detail-item">
+                    <div class="detail-label">USN</div>
+                    <div class="detail-value">{{ current_student_usn }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Student Name</div>
+                    <div class="detail-value">{{ allocation.student_name }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Seat Number</div>
+                    <div class="detail-value">{{ allocation.seat_number }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Position</div>
+                    <div class="detail-value">R{{ allocation.row_num }}C{{ allocation.col_num }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Subject</div>
+                    <div class="detail-value">{{ allocation.subject_code }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="room-info">
+            <strong>Room Layout:</strong> {{ room.rows }} rows × {{ room.cols }} columns &nbsp;|&nbsp;
+            <strong>Total Capacity:</strong> {{ room.capacity }} seats
+        </div>
+
+        <div class="legend no-print">
+            <div class="legend-item">
+                <div class="legend-box" style="background: linear-gradient(135deg, #28a745, #20c997); border: 2px solid #fff;"></div>
+                <span><strong>Your Seat</strong></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: linear-gradient(135deg, #6c757d, #495057);"></div>
+                <span>Other Students</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box empty-seat"></div>
+                <span>Empty Seat</span>
+            </div>
+        </div>
+
+        <h4 class="text-center mb-3">
+            <i class="fas fa-chair me-2"></i>Room Seating Arrangement
+        </h4>
+
+        <div class="seating-grid" id="seating-grid" style="grid-template-columns: repeat({{ room.cols }}, 1fr);">
+            {% for r in range(1, room.rows + 1) %}
+                {% for c in range(1, room.cols + 1) %}
+                    {% set students_at_desk = room_allocations | selectattr('row_num', 'equalto', r) | selectattr('col_num', 'equalto', c) | list %}
+                    {% set is_your_desk = students_at_desk | selectattr('student_usn', 'equalto', current_student_usn) | list | length > 0 %}
+                    
+                    <div class="desk {% if is_your_desk %}your-seat{% elif students_at_desk | length == 0 %}empty{% endif %}">
+                        <div style="display: flex; gap: 5px;">
+                            {% if students_at_desk | length > 0 %}
+                                {% for student in students_at_desk %}
+                                    <div class="seat {% if student.student_usn == current_student_usn %}your-seat-marker{% else %}other-seat{% endif %}">
+                                        <span style="font-size: 11px;">{{ student.student_usn[-3:] }}</span>
+                                        <span style="font-size: 8px;">{{ student.seat_number }}</span>
+                                    </div>
+                                {% endfor %}
+                                {% if students_at_desk | length == 1 %}
+                                    <div class="seat empty-seat">---</div>
+                                {% endif %}
+                            {% else %}
+                                <div class="seat empty-seat">---</div>
+                                <div class="seat empty-seat">---</div>
+                            {% endif %}
+                        </div>
+                        <div class="desk-info">
+                            {% if students_at_desk | length > 0 %}
+                                <b>{{ students_at_desk[0].desk_id or 'Desk' }}</b><br>
+                            {% endif %}
+                            <small>R{{ r }}C{{ c }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        <div class="instructions">
+            <h4><i class="fas fa-info-circle me-2"></i>Important Instructions</h4>
+            <ul>
+                <li><strong>Your seat is highlighted in GREEN</strong> - Look for your seat number <strong>{{ allocation.seat_number }}</strong></li>
+                <li>Report to the examination hall <strong>30 minutes before</strong> the exam starts</li>
+                <li>Locate your seat (Row {{ allocation.row_num }}, Column {{ allocation.col_num }}) and settle down</li>
+                <li>Carry your <strong>hall ticket</strong> and valid <strong>photo ID</strong> (Aadhar/College ID)</li>
+                <li>Mobile phones and electronic devices are <strong>strictly prohibited</strong></li>
+                <li>Maintain silence and discipline in the examination hall</li>
+            </ul>
+        </div>
+
+        <div class="text-center mt-4 no-print">
+            <button class="btn btn-success btn-lg me-2" onclick="window.print()">
+                <i class="fas fa-print me-2"></i>Print Seating Plan
+            </button>
+            <button class="btn btn-primary btn-lg" onclick="window.close()">
+                <i class="fas fa-check me-2"></i>I've Located My Seat
+            </button>
+        </div>
+
+        <div class="text-center mt-3 text-muted" style="font-size: 13px;">
+            <p>This seating plan is valid only for this examination session</p>
+            <p>Contact the examination cell if you have any queries</p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-scroll to highlight your seat
+        window.addEventListener('load', function() {
+            const yourSeat = document.querySelector('.desk.your-seat');
+            if (yourSeat) {
+                yourSeat.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    </script>
+</body>
+</html>
