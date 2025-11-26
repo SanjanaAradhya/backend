@@ -16,14 +16,43 @@ import random
 from itertools import combinations
 from datetime import datetime
 from typing import List, Dict, Tuple, Optional
+import os
+
+from dotenv import load_dotenv
+
+# Load .env in development (safe no-op if file not present)
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'vtu_chatbot_secret_key_2024'
-app.config['SESSION_TYPE'] = 'filesystem'
 
-# Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:SanjanaBs%4018@localhost/vtu_exam_registration'
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-fallback-secret-change-me')
+
+# Sessions
+app.config['SESSION_TYPE'] = os.environ.get('SESSION_TYPE', 'filesystem')
+
+# DATABASE: prefer a single DATABASE_URL env var (works for most hosts)
+# Example formats:
+#  - MySQL:    mysql+pymysql://user:pass@host:3306/dbname
+#  - Postgres: postgresql+psycopg2://user:pass@host:5432/dbname
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Per-field fallback (only for local dev). Do NOT hardcode production creds here.
+    DB_USER = os.environ.get('DB_USER', 'root')
+    DB_PASS = os.environ.get('DB_PASS', 'SanjanaBs@18')
+    DB_HOST = os.environ.get('DB_HOST', 'localhost')
+    DB_PORT = os.environ.get('DB_PORT', '3306')
+    DB_NAME = os.environ.get('DB_NAME', 'vtu_exam_registration')
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.secret_key = 'vtu_chatbot_secret_key_2024'
+# app.config['SESSION_TYPE'] = 'filesystem'
+
+# # Database configuration
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:SanjanaBs%4018@localhost/vtu_exam_registration'
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
@@ -1013,7 +1042,7 @@ class CompleteAISeatAllocator:
             
             # Handle remaining students
             remaining_indices = [i for i, student in enumerate(students) if i not in used_students]
-            
+                        
             for i in range(0, len(remaining_indices) - 1, 2):
                 idx1 = remaining_indices[i]
                 idx2 = remaining_indices[i + 1]
@@ -3071,13 +3100,22 @@ from apscheduler.triggers.date import DateTrigger
 # STEP 3: EMAIL CONFIGURATION (Already provided earlier)
 # ===============================================================================
 
+# EMAIL_CONFIG = {
+#     'MAIL_SERVER': 'smtp.gmail.com',
+#     'MAIL_PORT': 587,
+#     'MAIL_USE_TLS': True,
+#     'MAIL_USERNAME': 'sanjanabs315@gmail.com',  # CHANGE THIS
+#     'MAIL_PASSWORD': 'mnuw iodr hyzw mhxa',     # CHANGE THIS
+#     'MAIL_DEFAULT_SENDER': 'VTU Exam Cell <sanjanabs315@gmail.com>'
+# }
+
 EMAIL_CONFIG = {
-    'MAIL_SERVER': 'smtp.gmail.com',
-    'MAIL_PORT': 587,
+    'MAIL_SERVER': os.environ.get('MAIL_SERVER'),
+    'MAIL_PORT': int(os.environ.get('MAIL_PORT', 587)),
     'MAIL_USE_TLS': True,
-    'MAIL_USERNAME': 'sanjanabs315@gmail.com',  # CHANGE THIS
-    'MAIL_PASSWORD': 'mnuw iodr hyzw mhxa',     # CHANGE THIS
-    'MAIL_DEFAULT_SENDER': 'VTU Exam Cell <sanjanabs315@gmail.com>'
+    'MAIL_USERNAME': os.environ.get('MAIL_USERNAME'),
+    'MAIL_PASSWORD': os.environ.get('MAIL_PASSWORD'),
+    'MAIL_DEFAULT_SENDER': os.environ.get('MAIL_DEFAULT_SENDER')
 }
 
 # ===============================================================================
@@ -3097,8 +3135,9 @@ class EmailService:
     def __init__(self, app):
         self.app = app
         self.config = EMAIL_CONFIG
-        self.public_url = os.getenv('https://droughtiest-gaspingly-charmain.ngrok-free.app', 'http://127.0.0.1:5000')
-    
+        #self.public_url = os.getenv('https://droughtiest-gaspingly-charmain.ngrok-free.app', 'http://127.0.0.1:5000')
+        self.public_url = (os.environ.get("PUBLIC_URL") or "http://127.0.0.1:5000").rstrip("/")
+
     def send_email(self, to_email, subject, html_body):
         """Send email using SMTP"""
         try:
@@ -4341,7 +4380,7 @@ def get_allocation_results_api(session_id):
     FIXED: API endpoint to fetch allocation results
     """
     try:
-        from app import AllocationSession, DetailedAllocation
+        from app1 import AllocationSession, DetailedAllocation
         
         if not session_id:
             return jsonify({'success': False, 'message': 'No session_id provided'}), 400
